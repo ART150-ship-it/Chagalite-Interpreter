@@ -1,9 +1,12 @@
 #pragma once
 #include <ostream>
+#include <vector>
+#include <stack>
 #include "linkedlist.hpp"
 
 struct treeNode {
     std::string line;
+    std::string tokenType;
     int lineNumber = -1;
     treeNode* next = nullptr;
     treeNode* leftChild = nullptr;
@@ -13,9 +16,9 @@ class LCRSTree {
     public:
         LCRSTree();
         LCRSTree(const linklist& other);
-        LCRSTree(const LCRSTree& other);
-        void addRightSibling(std::string lineToAdd, int currentLine);
-        void addLeftChild(std::string lineToAdd, int currentLine);
+        LCRSTree(const LCRSTree& otherTree);
+        void addRightSibling(std::string lineToAdd, int currentLine, std::string token);
+        void addLeftChild(std::string lineToAdd, int currentLine, std::string token);
         std::string peek(Node* walker);
 
         void DOUBLE_QUOTE(Node* currentToken);
@@ -45,11 +48,12 @@ class LCRSTree {
         void LT_EQUAL(Node* currentToken);
         void LT(Node* currentToken);
         void ESCAPED_CHARACTER(Node* currentToken);
+        void booleanExpressionPostFix(std::vector<treeNode*> treeNodeList);
         
         std::string reservedWordChecker(std::string wordToCheck);
         treeNode* getRoot() const {return root;}
 
-        friend std::ostream& operator<< (std::ostream& out, const LCRSTree tree);
+        friend std::ostream& operator<< (std::ostream& out, const LCRSTree& tree);
     private:
         treeNode* root = nullptr;
         treeNode* last = nullptr;

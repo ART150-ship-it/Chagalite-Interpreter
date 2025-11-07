@@ -13,18 +13,23 @@ LCRSTree::LCRSTree(const linklist& other)
     identifer(walker);
 }
 
+LCRSTree::LCRSTree(const LCRSTree& otherTree)
+{
+    //do nothing
+}
+
 void LCRSTree::identifer(Node* currentToken)
 {
     if(last != nullptr){
         if(last->line == "{" or (last->line == ";" and isForLoop == false) or last->line == "}"){
-            addLeftChild(currentToken->theToken, currentToken->lineNumber + 1);
+            addLeftChild(currentToken->theToken, currentToken->lineNumber + 1, currentToken->tokenType);
         }
         else{
-            addRightSibling(currentToken->theToken, currentToken->lineNumber + 1);
+            addRightSibling(currentToken->theToken, currentToken->lineNumber + 1, currentToken->tokenType);
         }
     }
     else{
-        addRightSibling(currentToken->theToken, currentToken->lineNumber + 1);
+        addRightSibling(currentToken->theToken, currentToken->lineNumber + 1, currentToken->tokenType);
     }
     if(currentToken->theToken == "for"){
         isForLoop = true;
@@ -105,16 +110,16 @@ void LCRSTree::L_PAREN(Node *currentToken)
 {
     if(last != nullptr){
         if(last->line == "{" or (last->line == ";" and isForLoop == false) or last->line == "}"){
-            addLeftChild(currentToken->theToken, currentToken->lineNumber + 1);
+            addLeftChild(currentToken->theToken, currentToken->lineNumber + 1, currentToken->tokenType);
         }
         else{
-            addRightSibling(currentToken->theToken, currentToken->lineNumber + 1);
+            addRightSibling(currentToken->theToken, currentToken->lineNumber + 1, currentToken->tokenType);
         }
     }
     else{
-        addRightSibling(currentToken->theToken, currentToken->lineNumber + 1);
+        addRightSibling(currentToken->theToken, currentToken->lineNumber + 1, currentToken->tokenType);
     }    
-    //addRightSibling(currentToken->theToken, currentToken->lineNumber + 1);
+    //addRightSibling(currentToken->theToken, currentToken->lineNumber + 1, currentToken->tokenType);
     std::string nextTokenType = peek(currentToken);
     if(nextTokenType == "IDENTIFIER"){
         identifer(currentToken->next);
@@ -135,7 +140,7 @@ void LCRSTree::L_PAREN(Node *currentToken)
 
 void LCRSTree::R_PAREN(Node *currentToken)
 {
-    addRightSibling(currentToken->theToken, currentToken->lineNumber + 1);
+    addRightSibling(currentToken->theToken, currentToken->lineNumber + 1, currentToken->tokenType);
     std::string nextTokenType = peek(currentToken);
     if(nextTokenType == "L_BRACE"){
         L_BRACE(currentToken->next);
@@ -165,7 +170,7 @@ void LCRSTree::R_PAREN(Node *currentToken)
 
 void LCRSTree::L_BRACE(Node *currentToken)
 {
-    addLeftChild(currentToken->theToken, currentToken->lineNumber + 1);
+    addLeftChild(currentToken->theToken, currentToken->lineNumber + 1, currentToken->tokenType);
     std::string nextTokenType = peek(currentToken);
     if(isForLoop == true){
         isForLoop = false;
@@ -180,7 +185,7 @@ void LCRSTree::L_BRACE(Node *currentToken)
 
 void LCRSTree::R_BRACE(Node *currentToken)
 {
-    addLeftChild(currentToken->theToken, currentToken->lineNumber + 1);
+    addLeftChild(currentToken->theToken, currentToken->lineNumber + 1, currentToken->tokenType);
     std::string nextTokenType = peek(currentToken);
     if(nextTokenType == "IDENTIFIER"){
         identifer(currentToken->next);
@@ -193,7 +198,7 @@ void LCRSTree::R_BRACE(Node *currentToken)
 
 void LCRSTree::L_BRACKET(Node *currentToken)
 {
-    addRightSibling(currentToken->theToken, currentToken->lineNumber + 1);
+    addRightSibling(currentToken->theToken, currentToken->lineNumber + 1, currentToken->tokenType);
     std::string nextTokenType = peek(currentToken);
     if(nextTokenType == "INTEGER"){
         if(currentToken->next->theToken[0] == '-'){
@@ -212,7 +217,7 @@ void LCRSTree::L_BRACKET(Node *currentToken)
 
 void LCRSTree::R_BRACKET(Node *currentToken)
 {
-    addRightSibling(currentToken->theToken, currentToken->lineNumber + 1);
+    addRightSibling(currentToken->theToken, currentToken->lineNumber + 1, currentToken->tokenType);
     std::string nextTokenType = peek(currentToken);
     if(nextTokenType == "SEMICOLON"){
         SEMICOLON(currentToken->next);
@@ -233,7 +238,7 @@ void LCRSTree::R_BRACKET(Node *currentToken)
 
 void LCRSTree::SEMICOLON(Node *currentToken)
 {
-    addRightSibling(currentToken->theToken, currentToken->lineNumber + 1);
+    addRightSibling(currentToken->theToken, currentToken->lineNumber + 1, currentToken->tokenType);
     std::string nextTokenType = peek(currentToken);
     if(nextTokenType == "IDENTIFIER"){
         identifer(currentToken->next);
@@ -248,7 +253,7 @@ void LCRSTree::SEMICOLON(Node *currentToken)
 
 void LCRSTree::COMMA(Node *currentToken)
 {
-    addRightSibling(currentToken->theToken, currentToken->lineNumber + 1);
+    addRightSibling(currentToken->theToken, currentToken->lineNumber + 1, currentToken->tokenType);
     std::string nextTokenType = peek(currentToken);
     if(nextTokenType == "IDENTIFIER"){
         identifer(currentToken->next);
@@ -257,7 +262,7 @@ void LCRSTree::COMMA(Node *currentToken)
 
 void LCRSTree::ASTERISK(Node *currentToken)
 {
-    addRightSibling(currentToken->theToken, currentToken->lineNumber + 1);
+    addRightSibling(currentToken->theToken, currentToken->lineNumber + 1, currentToken->tokenType);
     std::string nextTokenType = peek(currentToken);
     if(nextTokenType == "IDENTIFIER"){
         identifer(currentToken->next);
@@ -272,7 +277,7 @@ void LCRSTree::ASTERISK(Node *currentToken)
 
 void LCRSTree::DIVIDE(Node *currentToken)
 {
-    addRightSibling(currentToken->theToken, currentToken->lineNumber + 1);
+    addRightSibling(currentToken->theToken, currentToken->lineNumber + 1, currentToken->tokenType);
     std::string nextTokenType = peek(currentToken);
     if(nextTokenType == "IDENTIFIER"){
         identifer(currentToken->next);
@@ -284,7 +289,7 @@ void LCRSTree::DIVIDE(Node *currentToken)
 
 void LCRSTree::PLUS(Node *currentToken)
 {
-    addRightSibling(currentToken->theToken, currentToken->lineNumber + 1);
+    addRightSibling(currentToken->theToken, currentToken->lineNumber + 1, currentToken->tokenType);
     std::string nextTokenType = peek(currentToken);
     if(nextTokenType == "IDENTIFIER"){
         identifer(currentToken->next);
@@ -299,7 +304,7 @@ void LCRSTree::PLUS(Node *currentToken)
 
 void LCRSTree::MINUS(Node *currentToken)
 {
-    addRightSibling(currentToken->theToken, currentToken->lineNumber + 1);
+    addRightSibling(currentToken->theToken, currentToken->lineNumber + 1, currentToken->tokenType);
     std::string nextTokenType = peek(currentToken);
     if(nextTokenType == "IDENTIFIER"){
         identifer(currentToken->next);
@@ -314,7 +319,7 @@ void LCRSTree::MINUS(Node *currentToken)
 
 void LCRSTree::MODULO(Node *currentToken)
 {
-    addRightSibling(currentToken->theToken, currentToken->lineNumber + 1);
+    addRightSibling(currentToken->theToken, currentToken->lineNumber + 1, currentToken->tokenType);
     std::string nextTokenType = peek(currentToken);
     if(nextTokenType == "IDENTIFIER"){
         identifer(currentToken->next);
@@ -326,7 +331,7 @@ void LCRSTree::MODULO(Node *currentToken)
 
 void LCRSTree::ASSIGNMENT_OPERATOR(Node *currentToken)
 {
-    addRightSibling(currentToken->theToken, currentToken->lineNumber + 1);
+    addRightSibling(currentToken->theToken, currentToken->lineNumber + 1, currentToken->tokenType);
     std::string nextTokenType = peek(currentToken);
     if(nextTokenType == "IDENTIFIER"){
         identifer(currentToken->next);
@@ -344,7 +349,7 @@ void LCRSTree::ASSIGNMENT_OPERATOR(Node *currentToken)
 
 void LCRSTree::BOOLEAN_EQUAL(Node *currentToken)
 {
-    addRightSibling(currentToken->theToken, currentToken->lineNumber + 1);
+    addRightSibling(currentToken->theToken, currentToken->lineNumber + 1, currentToken->tokenType);
     std::string nextTokenType = peek(currentToken);
     if(nextTokenType == "IDENTIFIER"){
         identifer(currentToken->next);
@@ -359,7 +364,7 @@ void LCRSTree::BOOLEAN_EQUAL(Node *currentToken)
 
 void LCRSTree::BOOLEAN_AND(Node *currentToken)
 {
-    addRightSibling(currentToken->theToken, currentToken->lineNumber + 1);
+    addRightSibling(currentToken->theToken, currentToken->lineNumber + 1, currentToken->tokenType);
     std::string nextTokenType = peek(currentToken);
     if(nextTokenType == "L_PAREN"){
         L_PAREN(currentToken->next);
@@ -369,7 +374,7 @@ void LCRSTree::BOOLEAN_AND(Node *currentToken)
 
 void LCRSTree::BOOLEAN_NOT(Node *currentToken)
 {
-    addRightSibling(currentToken->theToken, currentToken->lineNumber + 1);
+    addRightSibling(currentToken->theToken, currentToken->lineNumber + 1, currentToken->tokenType);
     std::string nextTokenType = peek(currentToken);
     if(nextTokenType == "IDENTIFIER"){
         identifer(currentToken->next);
@@ -379,7 +384,7 @@ void LCRSTree::BOOLEAN_NOT(Node *currentToken)
 
 void LCRSTree::INTEGER(Node *currentToken)
 {
-    addRightSibling(currentToken->theToken, currentToken->lineNumber + 1);
+    addRightSibling(currentToken->theToken, currentToken->lineNumber + 1, currentToken->tokenType);
     std::string nextTokentype = peek(currentToken);
     if(nextTokentype == "SEMICOLON"){
         SEMICOLON(currentToken->next);
@@ -406,7 +411,7 @@ void LCRSTree::INTEGER(Node *currentToken)
 
 void LCRSTree::DOUBLE_QUOTE(Node *currentToken)
 {
-    addRightSibling(currentToken->theToken, currentToken->lineNumber + 1);
+    addRightSibling(currentToken->theToken, currentToken->lineNumber + 1, currentToken->tokenType);
     std::string nextTokenType = peek(currentToken);
     if(nextTokenType == "STRING"){
         STRING(currentToken->next);
@@ -427,7 +432,7 @@ void LCRSTree::DOUBLE_QUOTE(Node *currentToken)
 
 void LCRSTree::SINGLE_QUOTE(Node *currentToken)
 {
-    addRightSibling(currentToken->theToken, currentToken->lineNumber + 1);
+    addRightSibling(currentToken->theToken, currentToken->lineNumber + 1, currentToken->tokenType);
     std::string nextTokenType = peek(currentToken);
     if(nextTokenType == "STRING"){
         STRING(currentToken->next);
@@ -451,7 +456,7 @@ void LCRSTree::SINGLE_QUOTE(Node *currentToken)
 
 void LCRSTree::STRING(Node *currentToken)
 {
-    addRightSibling(currentToken->theToken, currentToken->lineNumber + 1);
+    addRightSibling(currentToken->theToken, currentToken->lineNumber + 1, currentToken->tokenType);
     std::string nextTokenType = peek(currentToken);
     if(nextTokenType == "DOUBLE_QUOTE"){
         DOUBLE_QUOTE(currentToken->next);
@@ -467,7 +472,7 @@ void LCRSTree::STRING(Node *currentToken)
 
 void LCRSTree::GT_EQUAL(Node *currentToken)
 {
-    addRightSibling(currentToken->theToken, currentToken->lineNumber + 1);
+    addRightSibling(currentToken->theToken, currentToken->lineNumber + 1, currentToken->tokenType);
     std::string nextTokenType = peek(currentToken);
     if(nextTokenType == "INTEGER"){
         INTEGER(currentToken->next);
@@ -479,7 +484,7 @@ void LCRSTree::GT_EQUAL(Node *currentToken)
 
 void LCRSTree::GT(Node *currentToken)
 {
-    addRightSibling(currentToken->theToken, currentToken->lineNumber + 1);
+    addRightSibling(currentToken->theToken, currentToken->lineNumber + 1, currentToken->tokenType);
     std::string nextTokenType = peek(currentToken);
     if(nextTokenType == "INTEGER"){
         INTEGER(currentToken->next);
@@ -491,7 +496,7 @@ void LCRSTree::GT(Node *currentToken)
 
 void LCRSTree::LT_EQUAL(Node *currentToken)
 {
-    addRightSibling(currentToken->theToken, currentToken->lineNumber + 1);
+    addRightSibling(currentToken->theToken, currentToken->lineNumber + 1, currentToken->tokenType);
     std::string nextTokenType = peek(currentToken);
     if(nextTokenType == "INTEGER"){
         INTEGER(currentToken->next);
@@ -503,7 +508,7 @@ void LCRSTree::LT_EQUAL(Node *currentToken)
 
 void LCRSTree::LT(Node *currentToken)
 {
-    addRightSibling(currentToken->theToken, currentToken->lineNumber + 1);
+    addRightSibling(currentToken->theToken, currentToken->lineNumber + 1, currentToken->tokenType);
     std::string nextTokenType = peek(currentToken);
     if(nextTokenType == "INTEGER"){
         INTEGER(currentToken->next);
@@ -515,7 +520,7 @@ void LCRSTree::LT(Node *currentToken)
 
 void LCRSTree::ESCAPED_CHARACTER(Node *currentToken)
 {
-    addRightSibling(currentToken->theToken, currentToken->lineNumber + 1);
+    addRightSibling(currentToken->theToken, currentToken->lineNumber + 1, currentToken->tokenType);
     std::string nextTokenType = peek(currentToken);
     if(nextTokenType == "SINGLE_QUOTE"){
         SINGLE_QUOTE(currentToken->next);
@@ -543,11 +548,186 @@ std::string LCRSTree::reservedWordChecker(std::string wordToCheck)
     return "";
 }
 
-void LCRSTree::addRightSibling(std::string lineToAdd, int currentLine)
+void LCRSTree::booleanExpressionPostFix(std::vector<treeNode*> treeNodeList)
+{
+    std::stack<treeNode*> st;
+    bool finished;
+    treeNode* temp = nullptr;
+    for(treeNode* walker : treeNodeList){
+        if ((walker->tokenType == "INTEGER") or (walker->tokenType == "identifer") or (walker->tokenType == "SINGLE_QUOTE") or (walker->tokenType == "DOUBLE_QUOTE") or (walker->tokenType == "STRING") or (walker->tokenType == "L_BRACKET") or (walker->tokenType == "R_BRACKET")){
+            std::cout << walker->line << " ";
+        }
+        else{
+            if(walker->tokenType == "L_PAREN"){
+                st.push(walker);
+            }
+            else{
+                if(walker->tokenType == "R_PAREN"){
+                    finished = false;
+                    while(!finished){
+                        if(st.top()->tokenType == "L_PAREN"){
+                            st.pop();
+                            finished = true;
+                        }
+                        else{
+                            std::cout << st.top()->line << " ";
+                            st.pop();
+                        }
+                    }
+                }
+                else{
+                    if((walker->tokenType == "BOOLEAN_EQUAL") or (walker->tokenType == "BOOLEAN_NOT") or (walker->tokenType == "LT") or (walker->tokenType == "GT") or (walker->tokenType == "LT_EQUAL") or (walker->tokenType == "GT_EQUAL") or (walker->tokenType == "BOOLEAN_AND") or (walker->tokenType == "BOOLEAN_OR") or (walker->tokenType == "BOOLEAN_NOT") or (walker->tokenType == "PLUS") or (walker->tokenType == "MINUS") or (walker->tokenType == "ASTERISK") or (walker->tokenType == "DIVIDE") or (walker->tokenType == "MODULO")){
+                        if(st.empty()){
+                            st.push(walker);
+                        }
+                        else{
+                            if(st.top()->tokenType == "L_PAREN"){
+                                st.push(walker);
+                            }
+                            else{
+                                if(walker->tokenType == "BOOLEAN_Not"){
+                                    finished = false;
+                                    while(!finished){
+                                        if(st.empty()){
+                                            if(st.top()->tokenType == "BOOLEAN_NOT"){
+                                                std::cout << st.top()->line << " ";
+                                                st.pop();
+                                            }
+                                            else{
+                                                st.push(walker);
+                                                finished = true;
+                                            }
+                                        }
+                                        else{
+                                            st.push(walker);
+                                            finished = true;
+                                        }
+                                    }
+                                }
+                                else{
+                                    if((walker->tokenType == "ASTERISK") or (walker->tokenType == "DIVIDE") or (walker->tokenType == "MODULO")){
+                                        finished = false;
+                                        while(!finished){
+                                            if(st.empty()){
+                                                if((st.top()->tokenType == "BOOLEAN_NOT") or (st.top()->tokenType == "ASTERISK") or (st.top()->tokenType == "DIVIDE") or (st.top()->tokenType == "MODULO")){
+                                                    std::cout << st.top()->line << " ";
+                                                    st.pop();
+                                                }
+                                                else{
+                                                    st.push(walker);
+                                                    finished = true;
+                                                }
+                                            }
+                                            else{
+                                                st.push(walker);
+                                                finished = true;
+                                            }
+                                        }
+                                    }
+                                    else{
+                                        if ((walker->tokenType == "PLUS") or walker->tokenType == "MINUS"){
+                                            finished = false;
+                                            while(!finished){
+                                                if(st.empty()){
+                                                    if ((st.top()->tokenType == "BOOLEAN_NOT") or (st.top()->tokenType == "ASTERISK") or (st.top()->tokenType == "DIVIDE") or (st.top()->tokenType == "MODULO") or (st.top()->tokenType == "PLUS") or (st.top()->tokenType == "MINUS")){
+                                                        std::cout << st.top()->line << " ";
+                                                        st.pop();
+                                                    }
+                                                    else{
+                                                        st.push(walker);
+                                                        finished = true;
+                                                    }
+                                                }
+                                                else{
+                                                    st.push(walker);
+                                                    finished = true;
+                                                }
+                                            }
+                                        }
+                                        else{
+                                            if ((walker->tokenType == "BOOLEAN_EQUAL") or (walker->tokenType == "NOT_EQUAL") or (walker->tokenType == "LT") or (walker->tokenType == "GT") or (walker->tokenType == "LT_EQUAL") or (walker->tokenType == "GT_EQUAL")){
+                                                finished = false;
+                                                while(!finished){
+                                                    if(st.empty()){
+                                                        if ((st.top()->tokenType == "BOOLEAN_NOT") || (st.top()->tokenType == "ASTERISK") ||(st.top()->tokenType == "DIVIDE") || (st.top()->tokenType == "MODULO") ||(st.top()->tokenType == "PLUS") || (st.top()->tokenType == "MINUS") ||(st.top()->tokenType == "BOOLEAN_EQUAL") || (st.top()->tokenType == "NOT_EQUAL") ||(st.top()->tokenType == "LT") || (st.top()->tokenType == "GT") ||(st.top()->tokenType == "LT_EQUAL") || (st.top()->tokenType == "GT_EQUAL") ||(st.top()->tokenType == "BOOLEAN_NOT")){
+                                                            std::cout << st.top()->line << " ";
+                                                            st.pop();
+                                                        }
+                                                        else{
+                                                            st.push(walker);
+                                                            finished = true;
+                                                        }
+                                                    }
+                                                    else{
+                                                        st.push(walker);
+                                                        finished = true;
+                                                    }
+                                                }
+                                            }
+                                            else{
+                                                if(walker->tokenType == "BOOLEAN_AND"){
+                                                    finished = false;
+                                                    while(!finished){
+                                                        if(st.empty()){
+                                                            if ((st.top()->tokenType == "BOOLEAN_NOT") || (st.top()->tokenType == "ASTERISK") ||(st.top()->tokenType == "DIVIDE") || (st.top()->tokenType == "MODULO") ||(st.top()->tokenType == "PLUS") || (st.top()->tokenType == "MINUS") ||(st.top()->tokenType == "BOOLEAN_EQUAL") || (st.top()->tokenType == "NOT_EQUAL") ||(st.top()->tokenType == "LT") || (st.top()->tokenType == "GT") ||(st.top()->tokenType == "LT_EQUAL") || (st.top()->tokenType == "GT_EQUAL") ||(st.top()->tokenType == "BOOLEAN_AND") || (st.top()->tokenType == "BOOLEAN_NOT")){
+                                                                std::cout << st.top()->line << " ";
+                                                                st.pop();
+                                                            }
+                                                            else{
+                                                                st.push(walker);
+                                                                finished = true;
+                                                            }
+                                                        }
+                                                        else{
+                                                            st.push(walker);
+                                                            finished = true;
+                                                        }
+                                                    }
+                                                }
+                                                else{
+                                                    if(walker->tokenType == "BOOLEAN_OR"){
+                                                        finished = false;
+                                                        while(!finished){
+                                                            if(st.empty()){
+                                                                if ((st.top()->tokenType == "BOOLEAN_NOT") ||(st.top()->tokenType == "ASTERISK") ||(st.top()->tokenType == "DIVIDE") ||(st.top()->tokenType == "MODULO") ||(st.top()->tokenType == "PLUS") ||(st.top()->tokenType == "MINUS") ||(st.top()->tokenType == "BOOLEAN_EQUAL") ||(st.top()->tokenType == "NOT_EQUAL") ||(st.top()->tokenType == "LT") ||(st.top()->tokenType == "GT") ||(st.top()->tokenType == "LT_EQUAL") ||(st.top()->tokenType == "GT_EQUAL") ||(st.top()->tokenType == "BOOLEAN_AND") ||(st.top()->tokenType == "BOOLEAN_OR") ||(st.top()->tokenType == "BOOLEAN_NOT")){
+                                                                    std::cout << st.top()->line << " ";
+                                                                    st.pop();
+                                                                }
+                                                                else{
+                                                                    st.push(walker);
+                                                                    finished = true;
+                                                                }
+                                                            }
+                                                            else{
+                                                                st.push(walker);
+                                                                finished = true;
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    while(!st.empty()){
+        std::cout << st.top()->line << " ";
+        st.pop();
+    }
+}
+
+void LCRSTree::addRightSibling(std::string lineToAdd, int currentLine, std::string tokenToAdd)
 {
     treeNode* newNode = new treeNode;
     newNode->line = lineToAdd;
     newNode->lineNumber = currentLine;
+    newNode->tokenType = tokenToAdd;
     if(root == nullptr){
         root = newNode;
         last = newNode;
@@ -557,7 +737,7 @@ void LCRSTree::addRightSibling(std::string lineToAdd, int currentLine)
     last = newNode;
 }
 
-void LCRSTree::addLeftChild(std::string lineToAdd, int currentLine)
+void LCRSTree::addLeftChild(std::string lineToAdd, int currentLine, std::string tokenToAdd)
 {
     if(last == nullptr){
         std::cout << "ERROR: Attempted to add leftChild to nonexistent parent" << std::endl;
@@ -566,6 +746,7 @@ void LCRSTree::addLeftChild(std::string lineToAdd, int currentLine)
     treeNode* newNode = new treeNode;
     newNode->line = lineToAdd;
     newNode->lineNumber = currentLine;
+    newNode->tokenType = tokenToAdd;
     last->leftChild = newNode;
     last = newNode;
 }
@@ -580,7 +761,7 @@ std::string LCRSTree::peek(Node *walker)
     return nextToken;
 }
 
-std::ostream &operator<<(std::ostream &out, const LCRSTree tree)
+std::ostream &operator<<(std::ostream &out, const LCRSTree& tree)
 {
     treeNode* walker = tree.root;
     while(walker != nullptr){
