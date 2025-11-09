@@ -1,8 +1,6 @@
 #include <iostream>
 #include <fstream>
-#include "linkedlist.hpp"
-#include "LCRS.hpp"
-#include "STLL.hpp"
+#include "AST.hpp"
 
 int main(int argc, char *argv[]){
     if(argc != 2){
@@ -18,11 +16,14 @@ int main(int argc, char *argv[]){
     // function int sum_of_first_n_squares (int n)
 
     LCRSTree CST(tokenizer);
-    std::cout << CST;
+    // std::cout << CST;
 
     SymbolTable ST(CST);
     //std::cout << ST;
 
+    AST ast(CST, ST);
+
+    ast.print();
 
     return 0;
 }

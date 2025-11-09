@@ -2,8 +2,8 @@
 #include "LCRS.hpp"
 
 struct STNode {
-    std::string identiferName = "";
-    std::string identiferType = "";
+    std::string identifierName = "";
+    std::string identifierType = "";
     std::string dataType = "";
     std::string datatypeIsArray = "";
     int datatypeArraySize = -1;
@@ -29,7 +29,7 @@ class SymbolTable {
     treeNode* isProcedure(treeNode *node, int currentScope);
     friend std::ostream& operator<< (std::ostream& out, const SymbolTable& LL);
 
-
+    STNode* resolve(std::string ident, int scope) const;
 
     private:
     STNode* first = nullptr;

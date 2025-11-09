@@ -148,6 +148,9 @@ void LCRSTree::R_PAREN(Node *currentToken)
     else if(nextTokenType == "R_PAREN"){
         R_PAREN(currentToken->next);
     }
+    else if(nextTokenType == "R_BRACKET"){
+        R_BRACKET(currentToken->next);
+    }
     else if(nextTokenType == "R_BRACE"){
         R_BRACE(currentToken->next);
     }
@@ -213,6 +216,9 @@ void LCRSTree::L_BRACKET(Node *currentToken)
     else if(nextTokenType == "PLUS"){
         PLUS(currentToken->next);
     }
+    else if(nextTokenType == "L_PAREN"){
+        L_PAREN(currentToken->next);
+    }
 }
 
 void LCRSTree::R_BRACKET(Node *currentToken)
@@ -233,6 +239,21 @@ void LCRSTree::R_BRACKET(Node *currentToken)
     }
     else if(nextTokenType == "COMMA"){
         COMMA(currentToken->next);
+    }
+    else if(nextTokenType == "PLUS"){
+        PLUS(currentToken->next);
+    }
+    else if(nextTokenType == "MINUS"){
+        MINUS(currentToken->next);
+    }
+    else if(nextTokenType == "ASTERISK"){
+        ASTERISK(currentToken->next);
+    }
+    else if(nextTokenType == "DIVIDE"){
+        DIVIDE(currentToken->next);
+    }
+    else if(nextTokenType == "MODULO"){
+        MODULO(currentToken->next);
     }
 }
 
@@ -285,6 +306,9 @@ void LCRSTree::DIVIDE(Node *currentToken)
     else if(nextTokenType == "INTEGER"){
         INTEGER(currentToken->next);
     }
+    else if(nextTokenType == "L_PAREN"){
+        L_PAREN(currentToken->next);
+    }
 }
 
 void LCRSTree::PLUS(Node *currentToken)
@@ -299,6 +323,9 @@ void LCRSTree::PLUS(Node *currentToken)
     }
     else if(nextTokenType == "R_BRACKET"){
         R_BRACKET(currentToken->next);
+    }
+    else if(nextTokenType == "L_PAREN"){
+        L_PAREN(currentToken->next);
     }
 }
 
@@ -315,6 +342,9 @@ void LCRSTree::MINUS(Node *currentToken)
     else if(nextTokenType == "SINGLE_QUOTE"){
         SINGLE_QUOTE(currentToken->next);
     }
+    else if(nextTokenType == "L_PAREN"){
+        L_PAREN(currentToken->next);
+    }
 }
 
 void LCRSTree::MODULO(Node *currentToken)
@@ -326,6 +356,9 @@ void LCRSTree::MODULO(Node *currentToken)
     }   
     else if(nextTokenType == "INTEGER"){
         INTEGER(currentToken->next);
+    }
+    else if(nextTokenType == "L_PAREN"){
+        L_PAREN(currentToken->next);
     }
 }
 
@@ -394,6 +427,9 @@ void LCRSTree::INTEGER(Node *currentToken)
     }
     else if(nextTokentype == "ASTERISK"){
         ASTERISK(currentToken->next);
+    }
+    else if(nextTokentype == "DIVIDE"){
+        DIVIDE(currentToken->next);
     }
     else if(nextTokentype == "PLUS"){
         PLUS(currentToken->next);

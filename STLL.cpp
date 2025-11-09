@@ -66,7 +66,7 @@ void SymbolTable::alreadyDefined(std::string name, int scopeNumber, int currentL
     }
     if(scopeNumber == 0){//We have a global need to check if it exists anywhere
         while(walker != nullptr){
-            if(walker->identiferName == name){
+            if(walker->identifierName == name){
                 std::cout << "Error on line " << currentLineNumber << ": variable \"" << name << "\" is already defined global" << std::endl;
                 exit(2);
             }
@@ -74,7 +74,7 @@ void SymbolTable::alreadyDefined(std::string name, int scopeNumber, int currentL
         }
         walker = paramFirst;
         while(walker != nullptr){
-            if(walker->identiferName == name){
+            if(walker->identifierName == name){
                 std::cout << "Error on line " << currentLineNumber << ": variable \"" << name << "\" is already defined global" << std::endl;
                 exit(2);
             }
@@ -85,11 +85,11 @@ void SymbolTable::alreadyDefined(std::string name, int scopeNumber, int currentL
 
     //Have a local that needs to be checked if its a global, or in the local area
     while(walker != nullptr){
-        if(name == walker->identiferName and walker->scope == 0){//already defined as global
+        if(name == walker->identifierName and walker->scope == 0){//already defined as global
             std::cout << "Error on line " << currentLineNumber << ": variable \"" << name << "\" is already defined globally" << std::endl;
             exit(2);
         }
-        else if(name == walker->identiferName and scopeNumber == walker->scope){//already defined in local space
+        else if(name == walker->identifierName and scopeNumber == walker->scope){//already defined in local space
             std::cout << "Error on line " << currentLineNumber << ": variable \"" << name << "\" is already defined locally" << std::endl;
             exit(2);
         }
@@ -97,11 +97,11 @@ void SymbolTable::alreadyDefined(std::string name, int scopeNumber, int currentL
     }
     walker = paramFirst;
     while(walker != nullptr){
-        if(name == walker->identiferName and scopeNumber == 0){//already defined as global
+        if(name == walker->identifierName and scopeNumber == 0){//already defined as global
             std::cout << "Error on line " << currentLineNumber << ": variable \"" << name << "\" is already defined globally" << std::endl;
             exit(2);
         }
-        else if(name == walker->identiferName and scopeNumber == walker->scope){//already defined in local space
+        else if(name == walker->identifierName and scopeNumber == walker->scope){//already defined in local space
             std::cout << "Error on line " << currentLineNumber << ": variable \"" << name << "\" is already defined locally" << std::endl;
             exit(2);
         }
@@ -113,12 +113,12 @@ treeNode* SymbolTable::isFunction(treeNode *node, int currentScope)
 {
     bool isFirst = true;
     STNode* newNode = new STNode;
-    newNode->identiferType = node->line;
+    newNode->identifierType = node->line;
     node = node->next;
     newNode->dataType = node->line;
     node = node->next;
     alreadyDefined(node->line,currentScope, node->lineNumber);
-    newNode->identiferName = node->line;
+    newNode->identifierName = node->line;
     std::string functionName = node->line;
     newNode->datatypeIsArray = "no";
     newNode->datatypeArraySize = 0;
@@ -134,7 +134,7 @@ treeNode* SymbolTable::isFunction(treeNode *node, int currentScope)
             newNode->dataType = node->line;
             node = node->next;
             alreadyDefined(node->line,currentScope, node->lineNumber);
-            newNode->identiferName = node->line;
+            newNode->identifierName = node->line;
             newNode->datatypeIsArray = "no";
             newNode->datatypeArraySize = 0;
             newNode->scope = currentScope;
@@ -149,7 +149,7 @@ treeNode* SymbolTable::isFunction(treeNode *node, int currentScope)
             newNode->dataType = node->line;
             node = node->next;
             alreadyDefined(node->line,currentScope, node->lineNumber);
-            newNode->identiferName = node->line;
+            newNode->identifierName = node->line;
             if(node->next->line == "["){
                 node = node->next;
                 newNode->datatypeIsArray = "yes";
@@ -172,7 +172,7 @@ treeNode* SymbolTable::isFunction(treeNode *node, int currentScope)
             newNode->dataType = node->line;
             node = node->next;
             alreadyDefined(node->line,currentScope, node->lineNumber);
-            newNode->identiferName = node->line;
+            newNode->identifierName = node->line;
             newNode->datatypeIsArray = "no";
             newNode->datatypeArraySize = 0;
             newNode->scope = currentScope;
@@ -189,8 +189,8 @@ treeNode *SymbolTable::isInt(treeNode *node, int currentScope)
     newNode->dataType = node->line;
     node = node->next;
     alreadyDefined(node->line,currentScope, node->lineNumber);
-    newNode->identiferName = node->line;
-    newNode->identiferType = "datatype";
+    newNode->identifierName = node->line;
+    newNode->identifierType = "datatype";
     newNode->datatypeIsArray = "no";
     newNode->datatypeArraySize = 0;
     newNode->scope = currentScope;
@@ -200,8 +200,8 @@ treeNode *SymbolTable::isInt(treeNode *node, int currentScope)
         newNode->dataType = "int";
         node = node->next->next;
         alreadyDefined(node->line,currentScope, node->lineNumber);
-        newNode->identiferName = node->line;
-        newNode->identiferType = "datatype";
+        newNode->identifierName = node->line;
+        newNode->identifierType = "datatype";
         newNode->datatypeIsArray = "no";
         newNode->datatypeArraySize = 0;
         newNode->scope = currentScope;
@@ -216,8 +216,8 @@ treeNode *SymbolTable::isChar(treeNode *node, int currentScope)
     newNode->dataType = node->line;
     node = node->next;
     alreadyDefined(node->line,currentScope, node->lineNumber);
-    newNode->identiferName = node->line;
-    newNode->identiferType = "datatype";
+    newNode->identifierName = node->line;
+    newNode->identifierType = "datatype";
     if(node->next->line == "["){
         node = node->next;
         newNode->datatypeIsArray = "yes";
@@ -239,8 +239,8 @@ treeNode *SymbolTable::isBool(treeNode *node, int currentScope)
     newNode->dataType = node->line;
     node = node->next;
     alreadyDefined(node->line,currentScope, node->lineNumber);
-    newNode->identiferName = node->line;
-    newNode->identiferType = "datatype";
+    newNode->identifierName = node->line;
+    newNode->identifierType = "datatype";
     newNode->datatypeIsArray = "no";
     newNode->datatypeArraySize = 0;
     newNode->scope = currentScope;
@@ -252,10 +252,10 @@ treeNode *SymbolTable::isProcedure(treeNode *node, int currentScope)
 {
     bool isFirst = true;
     STNode* newNode = new STNode;
-    newNode->identiferType = node->line;
+    newNode->identifierType = node->line;
     node = node->next;
     alreadyDefined(node->line,currentScope, node->lineNumber);
-    newNode->identiferName = node->line;
+    newNode->identifierName = node->line;
     std::string functionName = node->line;
     newNode->dataType = "NOT APPLICABLE";
     newNode->datatypeIsArray = "no";
@@ -272,7 +272,7 @@ treeNode *SymbolTable::isProcedure(treeNode *node, int currentScope)
             newNode->dataType = node->line;
             node = node->next;
             alreadyDefined(node->line,currentScope, node->lineNumber);
-            newNode->identiferName = node->line;
+            newNode->identifierName = node->line;
             newNode->datatypeIsArray = "no";
             newNode->datatypeArraySize = 0;
             newNode->scope = currentScope;
@@ -287,7 +287,7 @@ treeNode *SymbolTable::isProcedure(treeNode *node, int currentScope)
             newNode->dataType = node->line;
             node = node->next;
             alreadyDefined(node->line,currentScope, node->lineNumber);
-            newNode->identiferName = node->line;
+            newNode->identifierName = node->line;
             if(node->next->line == "["){
                 node = node->next;
                 newNode->datatypeIsArray = "yes";
@@ -341,12 +341,26 @@ bool SymbolTable::InsertNodeParamLast(STNode *newNode)
     return true;
 }
 
+STNode* SymbolTable::resolve(std::string ident, int scope) const
+{
+    STNode* walker = first;
+
+    while (walker) {
+        if (walker->identifierName == ident && (walker->scope == scope || walker->scope == 0)) {
+            return walker;
+        }
+        walker = walker->next;
+    }
+
+    return nullptr;
+}
+
 std::ostream &operator<<(std::ostream &out, const SymbolTable &LL)
 {
     STNode* walker = LL.first;
     while (walker != nullptr){
-        out << "IDENTIFIER_NAME: " << walker->identiferName << std::endl;
-        out << "IDENTIFIER_TYPE: " << walker->identiferType << std::endl;
+        out << "IDENTIFIER_NAME: " << walker->identifierName << std::endl;
+        out << "IDENTIFIER_TYPE: " << walker->identifierType << std::endl;
         out << "DATATYPE: " << walker->dataType << std::endl;
         out << "DATATYPE_IS_ARRAY: " << walker->datatypeIsArray << std::endl;
         out << "DATATYPE_ARRAY_SIZE: " << walker->datatypeArraySize << std::endl;
@@ -360,7 +374,7 @@ std::ostream &operator<<(std::ostream &out, const SymbolTable &LL)
         if(walker->parameterListFor != ""){
             out << "PARAMETER LIST FOR : " << walker->parameterListFor << std::endl;
         }
-        out << "IDENTIFIER_NAME: " << walker->identiferName << std::endl;
+        out << "IDENTIFIER_NAME: " << walker->identifierName << std::endl;
         out << "DATATYPE: " << walker->dataType << std::endl;
         out << "DATATYPE_IS_ARRAY: " << walker->datatypeIsArray << std::endl;
         out << "DATATYPE_ARRAY_SIZE: " << walker->datatypeArraySize << std::endl;
