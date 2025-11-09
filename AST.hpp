@@ -280,7 +280,7 @@ public:
                     }
                 }
                 
-            } else if (next->tokenType == "IDENTIFIER" && next->next && next->next->tokenType == "ASSIGNMENT_OPERATOR") {
+            } else if (next->tokenType == "IDENTIFIER" && next->next && (next->next->tokenType == "ASSIGNMENT_OPERATOR" || next->next->tokenType == "L_BRACKET")) {
                 // ASSIGNMENT
 
                 child({ASTNode::Type::ASSIGNMENT});
