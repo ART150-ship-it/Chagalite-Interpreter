@@ -3,29 +3,6 @@
 #include "STLL.hpp"
 #include <iostream>
 
-
-/* CST node for reference
-struct treeNode {
-    std::string line;
-    std::string tokenType;
-    int lineNumber = -1;
-    treeNode* next = nullptr;
-    treeNode* leftChild = nullptr;
-};
-
-// Symbol table node for reference
-struct STNode {
-    std::string identifierName = "";
-    std::string identifierType = "";
-    std::string dataType = "";
-    std::string datatypeIsArray = "";
-    int datatypeArraySize = -1;
-    int scopeCount = -1;
-    std::string parameterListFor = "";
-    STNode* next = nullptr;
-    int lineNumber = 0;
-};*/
-
 struct ASTNode {
     enum class Type {
         INVALID,
@@ -88,10 +65,10 @@ class AST {
 
     ASTNode* root = nullptr;
     ASTNode* tail = nullptr; // leftmost child
-    ASTNode* sib = nullptr; // rightmost sibling
-    treeNode* next = nullptr;
-    int scopeCount;
-    int scopeDepth;
+    ASTNode* sib = nullptr; // rightmost sibling of tail
+    treeNode* next = nullptr; // next CST node to be converted to an AST
+    int scopeCount; // increments each time we see a function or procedure
+    int scopeDepth; // increments on '{', decrements on '}'
 
 public:
     // add a new leftmost child
@@ -101,6 +78,7 @@ public:
         if (!root) {
             root = nn;
             tail = root;
+            sib = root;
             return;
         }
 
@@ -167,12 +145,11 @@ public:
                     sibling({ASTNode::Type::TOKEN, next}); // opening bracket
                     next = next->next;
 
-                    
-
                     addNumericalExpression();
 
                     if (!next) {
-                        std::cout << "Statement ended in the middle of a bracket?" << std::endl;
+                        // bug in this function or missing cases in CST
+                        std::cout << "INTERNAL ERROR: Statement ended in the middle of a bracket" << std::endl;
                         while (last) {
                             std::cout << last->line << " (" << last->tokenType << ")" << std::endl;
                             last = last->next;
@@ -202,13 +179,13 @@ public:
                 sibling({ASTNode::Type::TOKEN, next});
                 next = next->next;
             } else if (next->tokenType == "SINGLE_QUOTE" || next->tokenType == "DOUBLE_QUOTE") {
-                sibling({ASTNode::Type::TOKEN, next});
+                sibling({ASTNode::Type::TOKEN, next}); // ' or "
                 next = next->next;
 
-                sibling({ASTNode::Type::TOKEN, next});
+                sibling({ASTNode::Type::TOKEN, next}); // char or string or escaped char
                 next = next->next;
 
-                sibling({ASTNode::Type::TOKEN, next});
+                sibling({ASTNode::Type::TOKEN, next}); // ' or "
                 next = next->next;
             } else if (prec != -1) {
                 // bin op
@@ -244,9 +221,10 @@ public:
 
         }
         if (next) {
-            std::cout << "Exiting the numerical expression because of unrecognized operand " << next->line << " of type " << next->tokenType << std::endl;
+            std::cout << "Exiting the numerical expression because of unexpected operand " << next->line << " of type " << next->tokenType << std::endl;
         } else {
             std::cout << "Exiting the numerical expression because we reached the end of the statement" << std::endl;
+            std::cout << "\tLikely need to add more cases to the CST parser" << std::endl;
         }
         
 
@@ -270,6 +248,8 @@ public:
         scopeCount = 0;
         scopeDepth = 0;
         while (next) {
+
+            // TODO: handle the other AST node types
 
             if (next->tokenType == "L_BRACE") {
                 scopeDepth++;
