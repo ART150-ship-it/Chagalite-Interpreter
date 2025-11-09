@@ -2,6 +2,7 @@
 
 #include "STLL.hpp"
 #include <iostream>
+#include <optional>
 
 struct ASTNode {
     enum class Type {
@@ -116,27 +117,78 @@ public:
     }
 
     int opPrecedence(treeNode* n) {
-        if (n->tokenType == "ASSIGNMENT_OPERATOR") {
+        if (n->tokenType == "BOOLEAN_OR") {
             return 0;
-        } else if (n->tokenType == "PLUS" || n->tokenType == "MINUS") {
+        } else if (n->tokenType == "BOOLEAN_AND") {
             return 1;
-        } else if (n->tokenType == "ASTERISK" || n->tokenType == "DIVIDE" || n->tokenType == "MODULO") {
+        } else if (n->tokenType == "BOOLEAN_EQUAL" || n->tokenType == "NOT_EQUAL") {
             return 2;
+        } else if (n->tokenType == "GT" || n->tokenType == "GT_EQUAL" || n->tokenType == "LT" || n->tokenType == "LT_EQUAL") {
+            return 3;
+        } else if (n->tokenType == "ASSIGNMENT_OPERATOR") {
+            return 4;
+        } else if (n->tokenType == "PLUS" || n->tokenType == "MINUS") {
+            return 5;
+        } else if (n->tokenType == "ASTERISK" || n->tokenType == "DIVIDE" || n->tokenType == "MODULO") {
+            return 6;
+        } else if (n->tokenType == "BOOLEAN_NOT") {
+            return 7;
         }
         return -1;
     }
 
-    bool isBinOp(treeNode* n) {
-        return opPrecedence(n) >= 0;
+    bool isRightAssociative(treeNode* n) {
+        return n->tokenType == "BOOLEAN_NOT";
     }
 
-    void addNumericalExpression() {
+    enum class ExpressionType {
+        BOOLEAN,
+        NUMERIC,
+        VOID,
+    };
 
+    std::optional<ExpressionType> opType(treeNode* n) {
+        int p = opPrecedence(n);
+        if (p > 4 && p != 7) {
+            return ExpressionType::NUMERIC;
+        } else if (p != -1 && p != 4) {
+            return ExpressionType::BOOLEAN;
+        }
+
+        return {};
+    }
+
+    ExpressionType addExpression(const SymbolTable& table) {
+        ExpressionType ty = ExpressionType::VOID;
         std::vector<treeNode*> stack;
         while (next) {
             int prec = opPrecedence(next);
-            if (next->tokenType == "IDENTIFIER") {
+            if (next->tokenType == "IDENTIFIER" && next->line == "TRUE" || next->line == "FALSE") {
+                // boolean literal
+
                 sibling({ASTNode::Type::TOKEN, next});
+                next = next->next;
+                ty = ExpressionType::BOOLEAN;
+            } else if (next->tokenType == "IDENTIFIER") {
+                // variable, function call, array index
+
+                sibling({ASTNode::Type::TOKEN, next});
+                sib->symbol = table.resolve(next->line, scopeDepth ? scopeCount : 0);
+
+                // update datatype
+                if (sib->symbol) {
+                    if (sib->symbol->dataType == "int" || sib->symbol->dataType == "char") {
+                        ty = ExpressionType::NUMERIC;
+                    } else if (sib->symbol->dataType == "bool") {
+                        ty = ExpressionType::BOOLEAN;
+                    } else {
+                        ty = ExpressionType::VOID;
+                    }
+                } else {
+                    std::cout << "Unable to find " << next->line << " in symbol table" << std::endl;
+                    ty = ExpressionType::VOID;
+                }
+
                 next = next->next;
 
                 // array index
@@ -145,7 +197,13 @@ public:
                     sibling({ASTNode::Type::TOKEN, next}); // opening bracket
                     next = next->next;
 
-                    addNumericalExpression();
+                    if (addExpression(table) != ExpressionType::NUMERIC) {
+                        std::cout << "ERROR: array index expression must evaluate to an integer" << std::endl;
+                        if (sib->symbol) {
+                            std::cout << sib->token->line << ": " << sib->symbol->dataType << std::endl;
+                        }
+                        
+                    }
 
                     if (!next) {
                         // bug in this function or missing cases in CST
@@ -164,21 +222,26 @@ public:
                     sibling({ASTNode::Type::TOKEN, next}); // opening parenthesis
                     next = next->next;
 
-                    addNumericalExpression();
+                    addExpression(table);
                     while (next->tokenType == "COMMA") {
                         // arguments
                         sibling({ASTNode::Type::TOKEN, next}); // comma
                         next = next->next;
-                        addNumericalExpression();
+                        addExpression(table);
                     }
 
                     sibling({ASTNode::Type::TOKEN, next}); // closing parenthesis
                     next = next->next;
                 }
             } else if (next->tokenType == "INTEGER") {
+                // integer literal
+
                 sibling({ASTNode::Type::TOKEN, next});
                 next = next->next;
+                ty = ExpressionType::NUMERIC;
             } else if (next->tokenType == "SINGLE_QUOTE" || next->tokenType == "DOUBLE_QUOTE") {
+                // char and string literals
+
                 sibling({ASTNode::Type::TOKEN, next}); // ' or "
                 next = next->next;
 
@@ -187,12 +250,19 @@ public:
 
                 sibling({ASTNode::Type::TOKEN, next}); // ' or "
                 next = next->next;
-            } else if (prec != -1) {
-                // bin op
 
+                ty = ExpressionType::NUMERIC;
+            } else if (prec != -1) {
+                // boolean, numeric, and assignment operators
 
                 // pop all greater precedence operators first
-                while (!stack.empty() && stack.back()->tokenType != "L_PAREN" && opPrecedence(stack.back()) >= prec) {
+                while (!stack.empty() && stack.back()->tokenType != "L_PAREN") {
+                    int stackp = opPrecedence(stack.back());
+
+                    if (stackp < prec || stackp == prec && isRightAssociative(stack.back())) {
+                        break;
+                    }
+
                     sibling({ASTNode::Type::TOKEN, stack.back()});
                     stack.pop_back();
                 }
@@ -203,6 +273,7 @@ public:
                 stack.push_back(next);
                 next = next->next;
             } else if (next->tokenType == "R_PAREN") {
+
                 while (!stack.empty() && stack.back()->tokenType != "L_PAREN") {
                     sibling({ASTNode::Type::TOKEN, stack.back()});
                     stack.pop_back();
@@ -220,10 +291,9 @@ public:
             }
 
         }
-        if (next) {
-            std::cout << "Exiting the numerical expression because of unexpected operand " << next->line << " of type " << next->tokenType << std::endl;
-        } else {
-            std::cout << "Exiting the numerical expression because we reached the end of the statement" << std::endl;
+
+        if (!next) {
+            std::cout << "ERROR: Exiting the numerical expression because we reached the end of the statement" << std::endl;
             std::cout << "\tLikely need to add more cases to the CST parser" << std::endl;
         }
         
@@ -234,6 +304,16 @@ public:
             }
             stack.pop_back();
         }
+
+        
+        if (sib->token) {
+            auto lastOpType = opType(sib->token);
+            if (lastOpType.has_value()) {
+                ty = *lastOpType;
+            }
+        }
+
+        return ty;
     }
 
     void nextStatement() {
@@ -285,9 +365,66 @@ public:
 
                 child({ASTNode::Type::ASSIGNMENT});
                 tail->symbol = table.resolve(next->line, scopeDepth ? scopeCount : 0);
-                
-                addNumericalExpression();
 
+                if (!tail->symbol) {
+                    std::cout << "ERROR: unable to find " << next->line << " in symbol table" << std::endl;
+                } else {
+                    auto expType = addExpression(table);
+                    if (tail->symbol->dataType == "bool") {
+                        if (expType != ExpressionType::BOOLEAN) {
+                            std::cout << "ERROR: expected boolean expression on line " << next->lineNumber << std::endl;
+                        }
+                    } else {
+                        if (expType != ExpressionType::NUMERIC) {
+                            std::cout << "ERROR: expected numeric expression on line " << next->lineNumber << std::endl;
+                        }
+                    }
+                }
+                
+
+            } else if (next->line == "if") {
+                child({ASTNode::Type::IF});
+                next = next->next; // skip 'if' identifier
+                next = next->next; // skip opening parenthesis
+
+                auto expType = addExpression(table);
+                if (expType != ExpressionType::BOOLEAN) {
+                    std::cout << "ERROR: if condition must evaluate to a boolean" << std::endl;
+                }
+
+                // version using LCRSTree::booleanExpressionPostFix
+                //
+                // std::vector<treeNode*> treeNodeList;
+                // int parens = 0;
+                // while (next) {
+                //     if (next->tokenType == "R_PAREN") {
+                //         parens--;
+                //     } else if (next->tokenType == "L_PAREN") {
+                //         parens++;
+                //     }
+
+                //     if (parens < 0) {
+                //         break;
+                //     }
+
+                //     treeNodeList.push_back(next);
+                //     next = next->next;
+                // }
+
+                // auto tnl = LCRSTree::booleanExpressionPostFix(treeNodeList);
+                // for (auto* tr : tnl) {
+                //     sibling({ASTNode::Type::TOKEN, tr});
+                // }
+
+            } else if (next->line == "while") {
+                child({ASTNode::Type::WHILE});
+                next = next->next; // skip 'while' identifier
+                next = next->next; // skip opening parenthesis
+
+                auto expType = addExpression(table);
+                if (expType != ExpressionType::BOOLEAN) {
+                    std::cout << "ERROR: while condition must evaluate to a boolean" << std::endl;
+                }
 
             }
 
@@ -303,15 +440,15 @@ public:
         ASTNode* n = root;
         if (!n) {
             std::cout << "Empty AST\n";
+            return;
         }
-        std::cout << "AST:" << std::endl;
         // ignore the for loop case for now
         do {
             // std::cout << std::endl;
             std::cout << ASTNode::TypeName(n->ty);
             ASTNode* sibs = n->rs;
             while (sibs) {
-                std::cout << "\t" << sibs->token->line;
+                std::cout << "   " << sibs->token->line;
                 sibs = sibs->rs;
             }
             std::cout << std::endl;

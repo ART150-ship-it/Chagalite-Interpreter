@@ -19,7 +19,7 @@ int main(int argc, char *argv[]){
     // std::cout << CST;
 
     SymbolTable ST(CST);
-    //std::cout << ST;
+    // std::cout << ST;
 
     AST ast(CST, ST);
 

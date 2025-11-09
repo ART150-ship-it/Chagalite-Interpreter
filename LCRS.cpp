@@ -584,14 +584,15 @@ std::string LCRSTree::reservedWordChecker(std::string wordToCheck)
     return "";
 }
 
-void LCRSTree::booleanExpressionPostFix(std::vector<treeNode*> treeNodeList)
+std::vector<treeNode*> LCRSTree::booleanExpressionPostFix(const std::vector<treeNode*>& treeNodeList)
 {
     std::stack<treeNode*> st;
+    std::vector<treeNode*> res;
     bool finished;
     treeNode* temp = nullptr;
     for(treeNode* walker : treeNodeList){
-        if ((walker->tokenType == "INTEGER") or (walker->tokenType == "identifer") or (walker->tokenType == "SINGLE_QUOTE") or (walker->tokenType == "DOUBLE_QUOTE") or (walker->tokenType == "STRING") or (walker->tokenType == "L_BRACKET") or (walker->tokenType == "R_BRACKET")){
-            std::cout << walker->line << " ";
+        if ((walker->tokenType == "INTEGER") or (walker->tokenType == "IDENTIFIER") or (walker->tokenType == "SINGLE_QUOTE") or (walker->tokenType == "DOUBLE_QUOTE") or (walker->tokenType == "STRING") or (walker->tokenType == "L_BRACKET") or (walker->tokenType == "R_BRACKET")){
+            res.push_back(walker);
         }
         else{
             if(walker->tokenType == "L_PAREN"){
@@ -606,7 +607,7 @@ void LCRSTree::booleanExpressionPostFix(std::vector<treeNode*> treeNodeList)
                             finished = true;
                         }
                         else{
-                            std::cout << st.top()->line << " ";
+                            res.push_back(st.top());
                             st.pop();
                         }
                     }
@@ -626,7 +627,7 @@ void LCRSTree::booleanExpressionPostFix(std::vector<treeNode*> treeNodeList)
                                     while(!finished){
                                         if(st.empty()){
                                             if(st.top()->tokenType == "BOOLEAN_NOT"){
-                                                std::cout << st.top()->line << " ";
+                                                res.push_back(st.top());
                                                 st.pop();
                                             }
                                             else{
@@ -646,7 +647,7 @@ void LCRSTree::booleanExpressionPostFix(std::vector<treeNode*> treeNodeList)
                                         while(!finished){
                                             if(st.empty()){
                                                 if((st.top()->tokenType == "BOOLEAN_NOT") or (st.top()->tokenType == "ASTERISK") or (st.top()->tokenType == "DIVIDE") or (st.top()->tokenType == "MODULO")){
-                                                    std::cout << st.top()->line << " ";
+                                                    res.push_back(st.top());
                                                     st.pop();
                                                 }
                                                 else{
@@ -666,7 +667,7 @@ void LCRSTree::booleanExpressionPostFix(std::vector<treeNode*> treeNodeList)
                                             while(!finished){
                                                 if(st.empty()){
                                                     if ((st.top()->tokenType == "BOOLEAN_NOT") or (st.top()->tokenType == "ASTERISK") or (st.top()->tokenType == "DIVIDE") or (st.top()->tokenType == "MODULO") or (st.top()->tokenType == "PLUS") or (st.top()->tokenType == "MINUS")){
-                                                        std::cout << st.top()->line << " ";
+                                                        res.push_back(st.top());
                                                         st.pop();
                                                     }
                                                     else{
@@ -686,7 +687,7 @@ void LCRSTree::booleanExpressionPostFix(std::vector<treeNode*> treeNodeList)
                                                 while(!finished){
                                                     if(st.empty()){
                                                         if ((st.top()->tokenType == "BOOLEAN_NOT") || (st.top()->tokenType == "ASTERISK") ||(st.top()->tokenType == "DIVIDE") || (st.top()->tokenType == "MODULO") ||(st.top()->tokenType == "PLUS") || (st.top()->tokenType == "MINUS") ||(st.top()->tokenType == "BOOLEAN_EQUAL") || (st.top()->tokenType == "NOT_EQUAL") ||(st.top()->tokenType == "LT") || (st.top()->tokenType == "GT") ||(st.top()->tokenType == "LT_EQUAL") || (st.top()->tokenType == "GT_EQUAL") ||(st.top()->tokenType == "BOOLEAN_NOT")){
-                                                            std::cout << st.top()->line << " ";
+                                                            res.push_back(st.top());
                                                             st.pop();
                                                         }
                                                         else{
@@ -706,7 +707,7 @@ void LCRSTree::booleanExpressionPostFix(std::vector<treeNode*> treeNodeList)
                                                     while(!finished){
                                                         if(st.empty()){
                                                             if ((st.top()->tokenType == "BOOLEAN_NOT") || (st.top()->tokenType == "ASTERISK") ||(st.top()->tokenType == "DIVIDE") || (st.top()->tokenType == "MODULO") ||(st.top()->tokenType == "PLUS") || (st.top()->tokenType == "MINUS") ||(st.top()->tokenType == "BOOLEAN_EQUAL") || (st.top()->tokenType == "NOT_EQUAL") ||(st.top()->tokenType == "LT") || (st.top()->tokenType == "GT") ||(st.top()->tokenType == "LT_EQUAL") || (st.top()->tokenType == "GT_EQUAL") ||(st.top()->tokenType == "BOOLEAN_AND") || (st.top()->tokenType == "BOOLEAN_NOT")){
-                                                                std::cout << st.top()->line << " ";
+                                                                res.push_back(st.top());
                                                                 st.pop();
                                                             }
                                                             else{
@@ -726,7 +727,7 @@ void LCRSTree::booleanExpressionPostFix(std::vector<treeNode*> treeNodeList)
                                                         while(!finished){
                                                             if(st.empty()){
                                                                 if ((st.top()->tokenType == "BOOLEAN_NOT") ||(st.top()->tokenType == "ASTERISK") ||(st.top()->tokenType == "DIVIDE") ||(st.top()->tokenType == "MODULO") ||(st.top()->tokenType == "PLUS") ||(st.top()->tokenType == "MINUS") ||(st.top()->tokenType == "BOOLEAN_EQUAL") ||(st.top()->tokenType == "NOT_EQUAL") ||(st.top()->tokenType == "LT") ||(st.top()->tokenType == "GT") ||(st.top()->tokenType == "LT_EQUAL") ||(st.top()->tokenType == "GT_EQUAL") ||(st.top()->tokenType == "BOOLEAN_AND") ||(st.top()->tokenType == "BOOLEAN_OR") ||(st.top()->tokenType == "BOOLEAN_NOT")){
-                                                                    std::cout << st.top()->line << " ";
+                                                                    res.push_back(st.top());
                                                                     st.pop();
                                                                 }
                                                                 else{
@@ -753,9 +754,10 @@ void LCRSTree::booleanExpressionPostFix(std::vector<treeNode*> treeNodeList)
         }
     }
     while(!st.empty()){
-        std::cout << st.top()->line << " ";
+        res.push_back(st.top());
         st.pop();
     }
+    return res;
 }
 
 void LCRSTree::addRightSibling(std::string lineToAdd, int currentLine, std::string tokenToAdd)

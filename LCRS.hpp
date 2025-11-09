@@ -48,7 +48,7 @@ class LCRSTree {
         void LT_EQUAL(Node* currentToken);
         void LT(Node* currentToken);
         void ESCAPED_CHARACTER(Node* currentToken);
-        static void booleanExpressionPostFix(std::vector<treeNode*> treeNodeList);
+        static std::vector<treeNode*> booleanExpressionPostFix(const std::vector<treeNode*>& treeNodeList);
         
         std::string reservedWordChecker(std::string wordToCheck);
         treeNode* getRoot() const {return root;}

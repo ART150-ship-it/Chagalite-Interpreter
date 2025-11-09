@@ -346,6 +346,14 @@ STNode* SymbolTable::resolve(std::string ident, int scope) const
     STNode* walker = first;
 
     while (walker) {
+        if (walker->identifierName == ident && (walker->scope == scope || walker->scope == 0 || walker->identifierType == "function" || walker->identifierType == "procedure")) {
+            return walker;
+        }
+        walker = walker->next;
+    }
+
+    walker = paramFirst;
+    while (walker) {
         if (walker->identifierName == ident && (walker->scope == scope || walker->scope == 0)) {
             return walker;
         }
