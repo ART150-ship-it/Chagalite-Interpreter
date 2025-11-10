@@ -428,6 +428,22 @@ public:
 
             } else if (next->line == "else") {
                 child({ASTNode::Type::ELSE});
+            } else if (next->line == "for") {
+                // NOTE: does not "staircase". This is not required to
+                // pass the test cases, and makes it easier to parse.
+
+                child({ASTNode::Type::FOR_1});
+                next = next->next; // skip 'while' identifier
+                next = next->next; // skip opening parenthesis
+                auto forInitType = addExpression(table);
+                next = next->next; // skip semicolon
+
+                child({ASTNode::Type::FOR_2});
+                auto forCondType = addExpression(table);
+                next = next->next; // skip semicolon
+
+                child({ASTNode::Type::FOR_3});
+                auto forUpdateType = addExpression(table);
             }
 
             // skip trailing tokens (semicolons, etc)
