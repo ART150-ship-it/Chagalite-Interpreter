@@ -163,7 +163,7 @@ public:
         std::vector<treeNode*> stack;
         while (next) {
             int prec = opPrecedence(next);
-            if (next->tokenType == "IDENTIFIER" && next->line == "TRUE" || next->line == "FALSE") {
+            if (next->tokenType == "IDENTIFIER" && (next->line == "TRUE" || next->line == "FALSE")) {
                 // boolean literal
 
                 sibling({ASTNode::Type::TOKEN, next});
@@ -185,14 +185,14 @@ public:
                         ty = ExpressionType::VOID;
                     }
                 } else {
-                    std::cout << "Unable to find " << next->line << " in symbol table" << std::endl;
+                    std::cout << "ERROR: unable to find " << next->line << " in symbol table" << std::endl;
                     ty = ExpressionType::VOID;
                 }
 
-                next = next->next;
+                next = next->next; // skip identifier
 
-                // array index
                 if (next->tokenType == "L_BRACKET") {
+                    // array index
                     auto last = next;
                     sibling({ASTNode::Type::TOKEN, next}); // opening bracket
                     next = next->next;
@@ -426,6 +426,8 @@ public:
                     std::cout << "ERROR: while condition must evaluate to a boolean" << std::endl;
                 }
 
+            } else if (next->line == "else") {
+                child({ASTNode::Type::ELSE});
             }
 
             // skip trailing tokens (semicolons, etc)
