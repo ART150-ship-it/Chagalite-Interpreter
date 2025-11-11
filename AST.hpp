@@ -71,8 +71,7 @@ class AST {
     int scopeCount; // increments each time we see a function or procedure
     int scopeDepth; // increments on '{', decrements on '}'
 
-public:
-    // add a new leftmost child
+        // add a new leftmost child
     // TODO: support the staircasing of for loops
     void child(ASTNode n) {
         ASTNode* nn = new ASTNode(n);
@@ -141,6 +140,36 @@ public:
         return n->tokenType == "BOOLEAN_NOT";
     }
 
+    void internalError(std::string msg) {
+        std::cout << "INTERNAL ERROR on line " << next->lineNumber << ": " << msg << std::endl;
+    }
+
+    void syntaxError(std::string msg) {
+        std::cout << "Syntax error on line " << next->lineNumber << ": " << msg << std::endl;
+    }
+
+    void advanceSibling(const SymbolTable& table) {
+        sibling({ASTNode::Type::TOKEN, next});
+        if (next->tokenType == "IDENTIFIER") {
+            sib->symbol = table.resolve(next->line, scopeDepth ? scopeCount : 0);
+        }
+        if (next->next) {
+            next = next->next;
+        } else {
+            internalError("Reached end of statement unexpectedly.\nLikely need to add more cases to the CST parser.");
+        }
+    }
+
+    void expectSibling(const SymbolTable& table, std::string tokenType) {
+        if (next->tokenType != tokenType) {
+            internalError(std::string("Expected ") + tokenType + std::string(", got ") + next->tokenType);
+        }
+        advanceSibling(table);
+    }
+
+public:
+
+
     enum class ExpressionType {
         BOOLEAN,
         NUMERIC,
@@ -166,14 +195,11 @@ public:
             if (next->tokenType == "IDENTIFIER" && (next->line == "TRUE" || next->line == "FALSE")) {
                 // boolean literal
 
-                sibling({ASTNode::Type::TOKEN, next});
-                next = next->next;
+                advanceSibling(table);
                 ty = ExpressionType::BOOLEAN;
             } else if (next->tokenType == "IDENTIFIER") {
                 // variable, function call, array index
-
-                sibling({ASTNode::Type::TOKEN, next});
-                sib->symbol = table.resolve(next->line, scopeDepth ? scopeCount : 0);
+                advanceSibling(table);
 
                 // update datatype
                 if (sib->symbol) {
@@ -185,71 +211,47 @@ public:
                         ty = ExpressionType::VOID;
                     }
                 } else {
-                    std::cout << "ERROR: unable to find " << next->line << " in symbol table" << std::endl;
+                    syntaxError("unable to find " + sib->token->line + " in symbol table");
                     ty = ExpressionType::VOID;
                 }
-
-                next = next->next; // skip identifier
 
                 if (next->tokenType == "L_BRACKET") {
                     // array index
                     auto last = next;
-                    sibling({ASTNode::Type::TOKEN, next}); // opening bracket
-                    next = next->next;
+                    advanceSibling(table);
 
                     if (addExpression(table) != ExpressionType::NUMERIC) {
-                        std::cout << "ERROR: array index expression must evaluate to an integer" << std::endl;
-                        if (sib->symbol) {
-                            std::cout << sib->token->line << ": " << sib->symbol->dataType << std::endl;
-                        }
-                        
+                        syntaxError("array index expression must be numeric");
                     }
 
-                    if (!next) {
-                        // bug in this function or missing cases in CST
-                        std::cout << "INTERNAL ERROR: Statement ended in the middle of a bracket" << std::endl;
-                        while (last) {
-                            std::cout << last->line << " (" << last->tokenType << ")" << std::endl;
-                            last = last->next;
-                        }
-                    } else {
-                        sibling({ASTNode::Type::TOKEN, next}); // closing bracket
-                        next = next->next;
-                    }
-
+                    expectSibling(table, "R_BRACKET");
+                    
                 } else if (next->tokenType == "L_PAREN") {
                     // function call
-                    sibling({ASTNode::Type::TOKEN, next}); // opening parenthesis
-                    next = next->next;
+                    advanceSibling(table);
 
                     addExpression(table);
                     while (next->tokenType == "COMMA") {
                         // arguments
-                        sibling({ASTNode::Type::TOKEN, next}); // comma
-                        next = next->next;
+                        advanceSibling(table); // comma
+
                         addExpression(table);
                     }
 
-                    sibling({ASTNode::Type::TOKEN, next}); // closing parenthesis
-                    next = next->next;
+                    expectSibling(table, "R_PAREN");
                 }
             } else if (next->tokenType == "INTEGER") {
                 // integer literal
 
-                sibling({ASTNode::Type::TOKEN, next});
-                next = next->next;
+                advanceSibling(table);
+                
                 ty = ExpressionType::NUMERIC;
             } else if (next->tokenType == "SINGLE_QUOTE" || next->tokenType == "DOUBLE_QUOTE") {
                 // char and string literals
 
-                sibling({ASTNode::Type::TOKEN, next}); // ' or "
-                next = next->next;
-
-                sibling({ASTNode::Type::TOKEN, next}); // char or string or escaped char
-                next = next->next;
-
-                sibling({ASTNode::Type::TOKEN, next}); // ' or "
-                next = next->next;
+                advanceSibling(table); // ' or "
+                advanceSibling(table); // char or string or escaped char
+                advanceSibling(table); // ' or "
 
                 ty = ExpressionType::NUMERIC;
             } else if (prec != -1) {
@@ -293,10 +295,8 @@ public:
         }
 
         if (!next) {
-            std::cout << "ERROR: Exiting the numerical expression because we reached the end of the statement" << std::endl;
-            std::cout << "\tLikely need to add more cases to the CST parser" << std::endl;
+            internalError("Exiting the numerical expression unexpectedly due to end of statement.\nLikely need to add more cases to the CST parser");
         }
-        
 
         while (!stack.empty()) {
             if (stack.back()->tokenType != "L_PAREN") {
@@ -433,7 +433,7 @@ public:
                 // pass the test cases, and makes it easier to parse.
 
                 child({ASTNode::Type::FOR_1});
-                next = next->next; // skip 'while' identifier
+                next = next->next; // skip 'for' identifier
                 next = next->next; // skip opening parenthesis
                 auto forInitType = addExpression(table);
                 next = next->next; // skip semicolon
