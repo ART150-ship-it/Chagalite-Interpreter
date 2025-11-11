@@ -25,6 +25,7 @@ struct ASTNode {
 
     static std::string TypeName(Type t) {
         switch (t) {
+            case Type::INVALID: return "INVALID";
             case Type::DECLARATION: return "DECLARATION";
             case Type::ASSIGNMENT: return "ASSIGNMENT";
             case Type::BEGIN_BLOCK: return "BEGIN BLOCK";
@@ -37,8 +38,7 @@ struct ASTNode {
             case Type::WHILE: return "WHILE";
             case Type::CALL: return "CALL";
             case Type::PRINTF: return "PRINTF";
-            case Type::TOKEN: return "TOKEN";
-            case Type::INVALID: return "INVALID";
+            case Type::TOKEN: return "TOKEN"; 
         };
         return "UNKNOWN AST TYPE";
     }
