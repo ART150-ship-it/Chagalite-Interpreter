@@ -429,21 +429,21 @@ public:
             } else if (next->line == "else") {
                 child({ASTNode::Type::ELSE});
             } else if (next->line == "for") {
-                // NOTE: does not "staircase". This is not required to
-                // pass the test cases, and makes it easier to parse.
-
                 child({ASTNode::Type::FOR_1});
                 next = next->next; // skip 'for' identifier
                 next = next->next; // skip opening parenthesis
                 auto forInitType = addExpression(table);
                 next = next->next; // skip semicolon
+                tail = sib; // stair case
 
                 child({ASTNode::Type::FOR_2});
                 auto forCondType = addExpression(table);
                 next = next->next; // skip semicolon
+                tail = sib; // stair case
 
                 child({ASTNode::Type::FOR_3});
                 auto forUpdateType = addExpression(table);
+                tail = sib; // stair case
             }
 
             // skip trailing tokens (semicolons, etc)
@@ -454,25 +454,43 @@ public:
 
     }
 
-    void print() {
-        ASTNode* n = root;
+    // BFS-ish traversal
+    void printNode(ASTNode* n) {
         if (!n) {
-            std::cout << "Empty AST\n";
             return;
         }
-        // ignore the for loop case for now
-        do {
-            // std::cout << std::endl;
+        if (n->ty == ASTNode::Type::TOKEN) {
+            std::cout << "   " << n->token->line;
+        } else {
             std::cout << ASTNode::TypeName(n->ty);
-            ASTNode* sibs = n->rs;
-            while (sibs) {
-                std::cout << "   " << sibs->token->line;
-                sibs = sibs->rs;
-            }
+        }
+        if (!n->rs) {
             std::cout << std::endl;
-            // std::cout << "Symbol: " << (n->symbol ? n->symbol->identifierName : "NO SYMBOL") << std::endl;
-        } 
-        while (n = n->lc);
+        }
+        printNode(n->rs);
+        printNode(n->lc);
+    }
+
+    void print() {
+        printNode(root);
+        // ASTNode* n = root;
+        // if (!n) {
+        //     std::cout << "Empty AST\n";
+        //     return;
+        // }
+        // // ignore the for loop case for now
+        // do {
+        //     // std::cout << std::endl;
+        //     std::cout << ASTNode::TypeName(n->ty);
+        //     ASTNode* sibs = n->rs;
+        //     while (sibs) {
+        //         std::cout << "   " << sibs->token->line;
+        //         sibs = sibs->rs;
+        //     }
+        //     std::cout << std::endl;
+        //     // std::cout << "Symbol: " << (n->symbol ? n->symbol->identifierName : "NO SYMBOL") << std::endl;
+        // } 
+        // while (n = n->lc);
     }
 
 };
