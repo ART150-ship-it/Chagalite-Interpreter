@@ -18,8 +18,6 @@ struct ASTNode {
         FOR_2,
         FOR_3,
         WHILE,
-        CALL,
-        PRINTF,
         // GETCHAR, etc
     };
 
@@ -36,8 +34,6 @@ struct ASTNode {
             case Type::FOR_2: return "FOR EXPRESSION 2";
             case Type::FOR_3: return "FOR EXPRESSION 3";
             case Type::WHILE: return "WHILE";
-            case Type::CALL: return "CALL";
-            case Type::PRINTF: return "PRINTF";
             case Type::TOKEN: return "TOKEN"; 
         };
         return "UNKNOWN AST TYPE";
@@ -49,7 +45,6 @@ struct ASTNode {
     ASTNode* lc = nullptr;
     ASTNode* rs = nullptr;
 };
-
 
 bool isDatatypeSpecifier(treeNode* t) {
     if (t->tokenType != "IDENTIFIER") {
@@ -446,7 +441,7 @@ public:
                 tail = sib; // stair case
             }
 
-            // skip trailing tokens (semicolons, etc)
+            // skip trailing tokens (semicolons, else, closing parens, etc)
             if (next) {
                 nextStatement();
             }
@@ -473,24 +468,6 @@ public:
 
     void print() {
         printNode(root);
-        // ASTNode* n = root;
-        // if (!n) {
-        //     std::cout << "Empty AST\n";
-        //     return;
-        // }
-        // // ignore the for loop case for now
-        // do {
-        //     // std::cout << std::endl;
-        //     std::cout << ASTNode::TypeName(n->ty);
-        //     ASTNode* sibs = n->rs;
-        //     while (sibs) {
-        //         std::cout << "   " << sibs->token->line;
-        //         sibs = sibs->rs;
-        //     }
-        //     std::cout << std::endl;
-        //     // std::cout << "Symbol: " << (n->symbol ? n->symbol->identifierName : "NO SYMBOL") << std::endl;
-        // } 
-        // while (n = n->lc);
     }
 
 };
