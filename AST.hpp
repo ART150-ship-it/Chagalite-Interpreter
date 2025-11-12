@@ -57,17 +57,18 @@ bool isDatatypeSpecifier(treeNode* t) {
     return false;
 }
 
+// class to parse the CST into an AST
+// with the exception of the for loop, consumes once "line" of the CST per AST node
 class AST {
 
-    ASTNode* root = nullptr;
+    ASTNode* root = nullptr; 
     ASTNode* tail = nullptr; // leftmost child
     ASTNode* sib = nullptr; // rightmost sibling of tail
     treeNode* next = nullptr; // next CST node to be converted to an AST
     int scopeCount; // increments each time we see a function or procedure
     int scopeDepth; // increments on '{', decrements on '}'
 
-        // add a new leftmost child
-    // TODO: support the staircasing of for loops
+    // add a new leftmost child
     void child(ASTNode n) {
         ASTNode* nn = new ASTNode(n);
         if (!root) {
@@ -143,6 +144,8 @@ class AST {
         std::cout << "Syntax error on line " << next->lineNumber << ": " << msg << std::endl;
     }
 
+    // consume the next CST node and convert it to an AST node, adding a reference
+    // to its symbol in the symbol table if it was an identifier
     void advanceSibling(const SymbolTable& table) {
         sibling({ASTNode::Type::TOKEN, next});
         if (next->tokenType == "IDENTIFIER") {
@@ -155,6 +158,7 @@ class AST {
         }
     }
 
+    // same as advanceSibling(), but checks that the next CST node is of a specific token type
     void expectSibling(const SymbolTable& table, std::string tokenType) {
         if (next->tokenType != tokenType) {
             internalError(std::string("Expected ") + tokenType + std::string(", got ") + next->tokenType);
@@ -182,6 +186,21 @@ public:
         return {};
     }
 
+    /**
+     * @brief Function to consume an expression from the CST and add it to the AST in postfix notation
+     * 
+     * Expressions can be numeric, boolean, or have no evaluation type (VOID). 
+     * An example of a VOID expression is an assignment
+     * 
+     * Handles nested expressions in array indices and function calls
+     * 
+     * Identifiers are linked with their symbol in the symbol table
+     * 
+     * The only type checking performed is to ensure array index expressions are numeric
+     * 
+     * @param table the symbol table to register identifiers in
+     * @return The type the parsed expression evaluates to
+     */
     ExpressionType addExpression(const SymbolTable& table) {
         ExpressionType ty = ExpressionType::VOID;
         std::vector<treeNode*> stack;
@@ -311,6 +330,7 @@ public:
         return ty;
     }
 
+    // move the CST pointer to the next line
     void nextStatement() {
         while (next->next) {
             next = next->next;
@@ -318,14 +338,15 @@ public:
         next = next->leftChild;
     }
 
+    // build an AST from the CST and symbol table
     AST(const LCRSTree& cst, const SymbolTable& table) {
         next = cst.getRoot();
         scopeCount = 0;
         scopeDepth = 0;
         while (next) {
+            // at the start of the loop, `next` is the first token in the CST line 
 
-            // TODO: handle the other AST node types
-
+            // one if-else block for each AST node
             if (next->tokenType == "L_BRACE") {
                 scopeDepth++;
                 child({ASTNode::Type::BEGIN_BLOCK});
@@ -450,6 +471,7 @@ public:
     }
 
     // BFS-ish traversal
+    // good enough since at most one child will have a child of its own
     void printNode(ASTNode* n) {
         if (!n) {
             return;
