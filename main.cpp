@@ -24,6 +24,7 @@ int main(int argc, char *argv[]){
     AST ast(CST, ST);
 
     ast.print();
+    std::cout << std::endl;
 
     return 0;
 }
