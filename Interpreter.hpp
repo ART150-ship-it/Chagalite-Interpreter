@@ -267,7 +267,6 @@ public:
                 next = next->rs; // first symbol in index
                 int index = expression();
                 st.push(arr[index]);
-                std::cout << "Indexed array in expression with value " << st.top() << " at index " << index << std::endl;
                 next = next->rs; // first symbol after right bracket
             } else if (next->token->tokenType == "IDENTIFIER") {
                 if (next->token->line == "TRUE") {
