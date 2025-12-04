@@ -11,11 +11,18 @@ function int add_three (int a)
 procedure main (void)
 {
   printf("Hello, World!\n");
-  char b[2];
-  b[0] = 3;
-  b[1] = 2;
-  if (add_three(b[0]) == 6) {
-    printf("Inside loop\n");
+  int b;
+  b = -12;
+  int c;
+  c = 9;
+  bool cont;
+  cont = TRUE;
+  while (cont) {
+    printf("Inside loop%d\n", b);
+    b = b + 1;
+    if (b == 10) {
+      cont = FALSE;
+    }
   }
   
 }

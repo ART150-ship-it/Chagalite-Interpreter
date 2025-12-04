@@ -16,7 +16,7 @@ public:
 
     Interpreter(SymbolTable* table) {
         this->table = table;
-        execute(table->resolve("main", 0));
+        execute(table->resolve("main", 0)->decl->lc->lc);
     }
 
     int call() {
@@ -49,17 +49,18 @@ public:
 
         // jump
         call_stack.push({tail, next});
-        return execute(func->symbol);
-        // V DECLARATION
-        // V OPEN BRACE
-        // -> ...
+        int retval = execute(func->symbol->decl->lc->lc);
+
+        auto tn = call_stack.top();
+        call_stack.pop();
+        tail = tn.first;
+        next = tn.second;
+
+        return retval;
     }
 
-    void execute_statement() {}
-
-
-    // evaluate the code in this function, returning the value that function returned
-    int execute(STNode* symbol) {
+    // evaluate the code in this block, starting from the ASTNode* after the BEGIN_BLOCK
+    int execute(ASTNode* start) {
         
         // tail is a pointer to the bottom most AST node, that has a child pointer
         // next is a pointer to the right most AST node, that has a sibling pointer
@@ -72,18 +73,10 @@ public:
         ^tail              ^next
         IF   n   1   >=
         */
-
-        
+    
 
         // jump to the AST node after the BEGIN BLOCK of the function with this symbol
-        tail = symbol->decl->lc->lc;
-
-        if (!tail) {
-            std::cout << "Error: unable to find declaration of symbol \"" << symbol->identifierName << "\"\n";
-            exit(1);
-        }
-
-        // std::cout << "executing node of type " << ASTNode::TypeName(tail->ty) << std::endl;
+        tail = start;
 
         int blocks = 1;
         while (tail && blocks) {
@@ -107,6 +100,17 @@ public:
             } else if (next->ty == ASTNode::Type::CALL) {
                 next = next->rs;
                 call();
+            } else if (next->ty == ASTNode::Type::WHILE) {
+                next = next->rs;
+                ASTNode* cond = next;
+                ASTNode* loop_start = tail->lc->lc;
+                while (true) {
+                    next = cond;
+                    if (!expression()) {
+                        break;
+                    }
+                    execute(loop_start);
+                }
             } else if (next->ty == ASTNode::Type::ASSIGNMENT) {
                 next = next->rs;
                 // next now points to identifier being assigned
@@ -149,11 +153,7 @@ public:
                     // function
                     next = next->rs;
                     int retval = expression();
-                    // restore program counter
-                    auto tn = call_stack.top();
-                    call_stack.pop();
-                    tail = tn.first;
-                    next = tn.second;
+
                     return retval;
                 } else {
                     // procedure
@@ -162,16 +162,7 @@ public:
             }
             tail = tail->lc;
         }
-        // procedure
-        if (call_stack.empty()) {
-            // main
-        } else {
-            // restore program counter
-            auto tn = call_stack.top();
-            call_stack.pop();
-            tail = tn.first;
-            next = tn.second;
-        }
+
         return 0;
     }
 
@@ -204,11 +195,18 @@ public:
                 std::cout << "Indexed array in expression with value " << st.top() << " at index " << index << std::endl;
                 next = next->rs; // first symbol after right bracket
             } else if (next->token->tokenType == "IDENTIFIER") {
-                // variable
-                if (!next->symbol->value) {
-                    next->symbol->value = new int(0);
+                if (next->token->line == "TRUE") {
+                    st.push(1);
+                } else if (next->token->line == "FALSE") {
+                    st.push(0);
+                } else {
+                    // variable
+                    if (!next->symbol->value) {
+                        next->symbol->value = new int(0);
+                    }
+                    st.push(*next->symbol->value);
                 }
-                st.push(*next->symbol->value);
+
                 next = next->rs;
             } else if (next->token->tokenType == "INTEGER") {
                 st.push(std::stoi(next->token->line));
