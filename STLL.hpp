@@ -1,6 +1,8 @@
 #include <string>
 #include "LCRS.hpp"
 
+struct ASTNode;
+
 struct STNode {
     std::string identifierName = "";
     std::string identifierType = "";
@@ -11,6 +13,7 @@ struct STNode {
     std::string parameterListFor = "";
     std::vector<STNode*> params;
     STNode* next = nullptr;
+    ASTNode* decl = nullptr;
     int lineNumber = 0;
     int* value = nullptr;
 };

@@ -1,6 +1,7 @@
 #include <iostream>
 #include <fstream>
-#include "AST.hpp"
+#include "Interpreter.hpp"
+
 
 int main(int argc, char *argv[]){
     if(argc != 2){
@@ -23,8 +24,11 @@ int main(int argc, char *argv[]){
 
     AST ast(CST, ST);
 
-    ast.print();
-    std::cout << std::endl;
+    ast.print(); std::cout << std::endl;
+
+    std::cout << "INTERPRETED RESULT:\n";
+
+    Interpreter interpreter(&ST);
 
     return 0;
 }

@@ -4,28 +4,37 @@
 #include "AST.hpp"
 
 class Interpreter {
-    AST ast;
+    SymbolTable* table;
     ASTNode* next;
+    ASTNode* tail;
 
+    std::stack<std::pair<ASTNode*, ASTNode*>> call_stack;
+public:
     bool isExpression() {
         return next->ty == ASTNode::Type::TOKEN;
     }
 
-    
+    Interpreter(SymbolTable* table) {
+        this->table = table;
+        execute(table->resolve("main", 0));
+    }
 
     int call() {
         ASTNode* func = next;
-        next = next->lc; // L_PAREN
-        next = next->lc; // first param
+        next = next->rs; // L_PAREN
+        next = next->rs; // first param
 
         std::vector<int> params;
 
         while (next->token->tokenType != "R_PAREN") {
             params.push_back(expression());
             if (next && next->token->tokenType == "COMMA") {
-                next = next->lc;
+                next = next->rs;
             }
         }
+
+        // next is R_PAREN
+        next = next->rs; // first after R_PAREN
 
         if (params.size() != func->symbol->params.size()) {
             std::cerr << "Error: mismatched parameter list sizes. Attempted to call " << func->symbol->identifierName << " with " << params.size() << " arguments\n";
@@ -39,8 +48,88 @@ class Interpreter {
         }
 
         // jump
-
+        call_stack.push({tail, next});
+        return execute(func->symbol);
+        // V DECLARATION
+        // V OPEN BRACE
+        // -> ...
     }
+
+    // evaluate the code in this function, returning the value that function returned
+    int execute(STNode* symbol) {
+        
+        // tail is a pointer to the bottom most AST node, that has a child pointer
+        // next is a pointer to the right most AST node, that has a sibling pointer
+
+        /* example
+        DECLARATION
+        BEGIN BLOCK
+        DECLARATION
+        ASSIGNMENT   sum   0   =
+        ^tail              ^next
+        IF   n   1   >=
+        */
+
+        
+
+        // jump to the AST node after the BEGIN BLOCK of the function with this symbol
+        tail = symbol->decl->lc->lc;
+
+        if (!tail) {
+            std::cout << "Error: unable to find declaration of symbol \"" << symbol->identifierName << "\"\n";
+            exit(1);
+        }
+
+        // std::cout << "executing node of type " << ASTNode::TypeName(tail->ty) << std::endl;
+
+        int blocks = 1;
+        while (tail && blocks) {
+            
+            next = tail;
+            if (next->ty == ASTNode::Type::BEGIN_BLOCK) {
+                blocks++;
+            } else if (next->ty == ASTNode::Type::END_BLOCK) {
+                blocks--;
+            } else if (next->ty == ASTNode::Type::PRINTF) {
+                std::vector<int> args;
+                next = next->rs;
+                std::string fmt = next->token->line;
+                printf("%s\n", fmt.c_str());
+            } else if (next->ty == ASTNode::Type::CALL) {
+                next = next->rs;
+                call();
+            } else if (next->ty == ASTNode::Type::RETURN) {
+                if (next->rs) {
+                    // function
+                    next = next->rs;
+                    int retval = expression();
+                    // restore program counter
+                    auto tn = call_stack.top();
+                    call_stack.pop();
+                    tail = tn.first;
+                    next = tn.second;
+                    return retval;
+                } else {
+                    // procedure
+                    break;
+                }
+            }
+            tail = tail->lc;
+        }
+        // procedure
+        if (call_stack.empty()) {
+            // main
+        } else {
+            // restore program counter
+            auto tn = call_stack.top();
+            call_stack.pop();
+            tail = tn.first;
+            next = tn.second;
+        }
+        return 0;
+    }
+
+    
 
     int expression() {
         if (!isExpression()) {
@@ -50,77 +139,93 @@ class Interpreter {
 
         std::stack<int> st;
         do {
-            if (next->token->tokenType == "IDENTIFIER" && next->lc && next->lc->token->tokenType == "L_PAREN") {
+            if (next->token->tokenType == "IDENTIFIER" && next->rs && next->rs->token->tokenType == "L_PAREN") {
                 // function call
                 st.push(call());
                 
-            } else if (next->token->tokenType == "IDENTIFIER" && next->lc && next->lc->token->tokenType == "L_BRACKET") {
+            } else if (next->token->tokenType == "IDENTIFIER" && next->rs && next->rs->token->tokenType == "L_BRACKET") {
                 // array index
                 int* arr = next->symbol->value;
-                next = next->lc; // left bracket
-                next = next->lc; // first symbol in index
+                next = next->rs; // left bracket
+                next = next->rs; // first symbol in index
                 st.push(arr[expression()]);
-                next = next->lc; // first symbol after right bracket
+                next = next->rs; // first symbol after right bracket
             } else if (next->token->tokenType == "IDENTIFIER") {
                 // variable
                 st.push(*next->symbol->value);
+                next = next->rs;
             } else if (next->token->tokenType == "INTEGER") {
                 st.push(std::stoi(next->token->line));
+                next = next->rs;
             } else if (next->token->tokenType == "PLUS") {
                 int b = st.top(); st.pop();
                 int a = st.top(); st.pop();
                 st.push(a + b);
+                next = next->rs;
             } else if (next->token->tokenType == "MINUS") {
                 int b = st.top(); st.pop();
                 int a = st.top(); st.pop();
                 st.push(a - b);
+                next = next->rs;
             } else if (next->token->tokenType == "DIVIDE") {
                 int b = st.top(); st.pop();
                 int a = st.top(); st.pop();
                 st.push(a / b);
+                next = next->rs;
             } else if (next->token->tokenType == "ASTERISK") {
                 int b = st.top(); st.pop();
                 int a = st.top(); st.pop();
                 st.push(a * b);
+                next = next->rs;
             } else if (next->token->tokenType == "MODULO") {
                 int b = st.top(); st.pop();
                 int a = st.top(); st.pop();
                 st.push(a % b);
+                next = next->rs;
             } else if (next->token->tokenType == "BOOLEAN_AND") {
                 int b = st.top(); st.pop();
                 int a = st.top(); st.pop();
                 st.push(a && b);
+                next = next->rs;
             } else if (next->token->tokenType == "BOOLEAN_OR") {
                 int b = st.top(); st.pop();
                 int a = st.top(); st.pop();
                 st.push(a || b);
+                next = next->rs;
             } else if (next->token->tokenType == "BOOLEAN_NOT") {
                 int a = st.top(); st.pop();
                 st.push(!a);
+                next = next->rs;
             } else if (next->token->tokenType == "BOOLEAN_EQUAL") {
                 int b = st.top(); st.pop();
                 int a = st.top(); st.pop();
                 st.push(a == b);
+                next = next->rs;
             } else if (next->token->tokenType == "NOT_EQUAL") {
                 int b = st.top(); st.pop();
                 int a = st.top(); st.pop();
                 st.push(a != b);
+                next = next->rs;
             } else if (next->token->tokenType == "GT") {
                 int b = st.top(); st.pop();
                 int a = st.top(); st.pop();
                 st.push(a > b);
+                next = next->rs;
             } else if (next->token->tokenType == "GT_EQUAL") {
                 int b = st.top(); st.pop();
                 int a = st.top(); st.pop();
                 st.push(a >= b);
+                next = next->rs;
             } else if (next->token->tokenType == "LT") {
                 int b = st.top(); st.pop();
                 int a = st.top(); st.pop();
                 st.push(a < b);
+                next = next->rs;
             } else if (next->token->tokenType == "LT_EQUAL") {
                 int b = st.top(); st.pop();
                 int a = st.top(); st.pop();
                 st.push(a <= b);
+                next = next->rs;
             } else if (next->token->tokenType == "ASSIGNMENT_OPERATOR") {
                 std::cerr << "Error: assignment operator not allowed in general expressions. The right hand side should be consumed before calling expression()\n";
                 exit(1);

@@ -31,11 +31,14 @@ AST::AST(const LCRSTree& cst, const SymbolTable& table) {
             next = next->next; // name
             child({ASTNode::Type::DECLARATION});
             tail->symbol = table.resolve(next->line, scopeCount);
+            tail->symbol->decl = tail;
+            
         } else if (next->line == "procedure") {
             scopeCount++;
             next = next->next; // name
             child({ASTNode::Type::DECLARATION});
             tail->symbol = table.resolve(next->line, scopeCount);
+            tail->symbol->decl = tail;
         } else if (isDatatypeSpecifier(next)) {
             // DECLARATION
 
@@ -217,8 +220,11 @@ AST::ExpressionType AST::addExpression(const SymbolTable& table) {
             } else if (next->tokenType == "L_PAREN") {
                 // function call
                 advanceSibling(table);
-
-                addExpression(table);
+                
+                if (next->tokenType != "R_PAREN") {
+                    addExpression(table);
+                }
+                
                 while (next->tokenType == "COMMA") {
                     // arguments
                     advanceSibling(table); // comma
