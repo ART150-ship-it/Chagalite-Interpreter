@@ -98,6 +98,29 @@ public:
             } else if (next->ty == ASTNode::Type::CALL) {
                 next = next->rs;
                 call();
+            } else if (next->ty == ASTNode::Type::ASSIGNMENT) {
+                next = next->rs;
+                // next now points to identifier being assigned
+                STNode* stn = next->symbol;
+                delete stn->value;
+                stn->value = new int(expression());
+            } else if (next->ty == ASTNode::Type::IF) {
+                next = next->rs;
+                // next now points to condition
+                int cond = expression();
+
+                if (!cond) {
+                    // skip content
+                    // skip over BEGIN_BLOCK
+                    tail = tail->lc;
+                    int inner = blocks + 1;
+                    while (inner != blocks) {
+                        tail = tail->lc;
+                        if (tail->ty == ASTNode::Type::BEGIN_BLOCK) inner++;
+                        if (tail->ty == ASTNode::Type::END_BLOCK) inner--;
+                    }
+                }
+
             } else if (next->ty == ASTNode::Type::RETURN) {
                 if (next->rs) {
                     // function
@@ -152,6 +175,9 @@ public:
                 next = next->rs; // first symbol after right bracket
             } else if (next->token->tokenType == "IDENTIFIER") {
                 // variable
+                if (!next->symbol->value) {
+                    next->symbol->value = new int(0);
+                }
                 st.push(*next->symbol->value);
                 next = next->rs;
             } else if (next->token->tokenType == "INTEGER") {
@@ -227,8 +253,11 @@ public:
                 st.push(a <= b);
                 next = next->rs;
             } else if (next->token->tokenType == "ASSIGNMENT_OPERATOR") {
-                std::cerr << "Error: assignment operator not allowed in general expressions. The right hand side should be consumed before calling expression()\n";
-                exit(1);
+                // doesn't actually do anything, assignments handled on the calling side
+                int b = st.top(); st.pop();
+                int a = st.top(); st.pop();
+                st.push(b);
+                next = next->rs;
             } else {
                 break;
             }

@@ -2,14 +2,24 @@
 // * CS460: Programming Assignment 5: Test Program 1 *
 // ***************************************************
 
-procedure print_something_else (int a)
+function int print_something_else (int a)
 {
   printf("Something Else\n");
+  return a;
 }
 
+procedure print_something (void)
+{
+  printf("Something\n");
+}
 
 procedure main (void)
 {
   printf("Hello, World!\n");
-  print_something_else(2);
+  int b;
+  b = 3;
+  if (b == 4) {
+    b = print_something_else(b);
+  }
+  
 }
