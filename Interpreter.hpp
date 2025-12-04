@@ -55,6 +55,9 @@ public:
         // -> ...
     }
 
+    void execute_statement() {}
+
+
     // evaluate the code in this function, returning the value that function returned
     int execute(STNode* symbol) {
         
@@ -94,7 +97,13 @@ public:
                 std::vector<int> args;
                 next = next->rs;
                 std::string fmt = next->token->line;
-                printf("%s\n", fmt.c_str());
+                printf("%s ", fmt.c_str());
+                while (next->rs) {
+                    next = next->rs;
+
+                    printf("%d, ", *next->symbol->value);
+                }
+                printf("\n");
             } else if (next->ty == ASTNode::Type::CALL) {
                 next = next->rs;
                 call();
@@ -102,8 +111,22 @@ public:
                 next = next->rs;
                 // next now points to identifier being assigned
                 STNode* stn = next->symbol;
-                delete stn->value;
-                stn->value = new int(expression());
+                int index = 0;
+                if (stn->datatypeIsArray == "no") {
+                    if (!stn->value) {
+                        stn->value = new int;
+                    }
+                } else {
+                    if (!stn->value) {
+                        stn->value = new int[stn->datatypeArraySize];
+                    }
+                    next = next->rs; // now points to open bracket
+                    next = next->rs;
+                    index = expression();
+                    std::cout << "assignment to " << stn->identifierName << " with index " << index << std::endl;
+                }
+                next = tail->rs;
+                stn->value[index] = expression();
             } else if (next->ty == ASTNode::Type::IF) {
                 next = next->rs;
                 // next now points to condition
@@ -169,9 +192,16 @@ public:
             } else if (next->token->tokenType == "IDENTIFIER" && next->rs && next->rs->token->tokenType == "L_BRACKET") {
                 // array index
                 int* arr = next->symbol->value;
+
+                if (!arr) {
+                    arr = new int[next->symbol->datatypeArraySize];
+                }
+
                 next = next->rs; // left bracket
                 next = next->rs; // first symbol in index
-                st.push(arr[expression()]);
+                int index = expression();
+                st.push(arr[index]);
+                std::cout << "Indexed array in expression with value " << st.top() << " at index " << index << std::endl;
                 next = next->rs; // first symbol after right bracket
             } else if (next->token->tokenType == "IDENTIFIER") {
                 // variable

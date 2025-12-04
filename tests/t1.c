@@ -1,25 +1,25 @@
 // ***************************************************
-// * CS460: Programming Assignment 5: Test Program 1 *
+// * CS460: Programming Assignment 6: Test Program 1 *
 // ***************************************************
 
-function int print_something_else (int a)
+function int sum_of_first_n_squares (int n)
 {
-  printf("Something Else\n");
-  return a;
-}
+  int sum;
 
-procedure print_something (void)
-{
-  printf("Something\n");
+  sum = 0;
+  if (n >= 1)
+  {
+    sum = n * (n + 1) * (2 * n + 1) / 6;
+  }
+  return sum;
 }
-
+  
 procedure main (void)
 {
-  printf("Hello, World!\n");
-  int b;
-  b = 3;
-  if (b == 4) {
-    b = print_something_else(b);
-  }
-  
+  int n;
+  int sum;
+
+  n = 100;
+  sum = sum_of_first_n_squares (n);
+  printf ("sum of the squares of the first %d numbers = %d\n", n, sum);
 }

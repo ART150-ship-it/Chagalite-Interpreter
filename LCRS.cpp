@@ -104,6 +104,9 @@ void LCRSTree::identifer(Node* currentToken)
     else if(nextTokenType == "BOOLEAN_EQUAL"){
         BOOLEAN_EQUAL(currentToken->next);
     }
+    else if(nextTokenType == "INTEGER"){
+        INTEGER(currentToken->next);
+    }
 }
 
 void LCRSTree::L_PAREN(Node *currentToken)
