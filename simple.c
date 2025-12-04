@@ -20,6 +20,7 @@ procedure main (void)
   while (cont) {
     printf("Inside while loop %d\n", b);
     b = b + 1;
+    cont = FALSE;
     if (b == 3) {
       cont = FALSE;
     }
@@ -27,6 +28,10 @@ procedure main (void)
   int i;
   for (i = 0; i < 3; i = i + 1) {
     printf("Inside for loop %d\n", i);
+  }
+
+  if (c == 9) {
+    printf("IF statement body %d\n", i);
   }
 
   char str[15];
@@ -48,12 +53,12 @@ procedure main (void)
 
   int x, y, z;
 
-  for (x = 0; x < 3; x = x + 1) {
-    for (y = 0; y < 3; y = y + 1) {
-      for (z = 0; z < 3; z = z + 1) {
-        printf("values: (%d, %d, %d)\n", x, y, z);
-      }
-    }
-  }
+  // for (x = 0; x < 3; x = x + 1) {
+  //   for (y = 0; y < 3; y = y + 1) {
+  //     for (z = 0; z < 3; z = z + 1) {
+  //       printf("values: (%d, %d, %d)\n", x, y, z);
+  //     }
+  //   }
+  // }
   
 }

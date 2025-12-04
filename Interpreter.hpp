@@ -117,6 +117,27 @@ public:
 
     }
 
+    // call with tail = line below the BEGIN_BLOCK
+    void skip_block() {
+        int block = 1;
+
+        // auto step = [&]{
+
+        // };
+        // std::cout << "start skip from " << ASTNode::TypeName(tail->ty) << "\n";
+        while (block) {
+            if (tail->ty == ASTNode::Type::BEGIN_BLOCK) block++;
+            if (tail->ty == ASTNode::Type::END_BLOCK)   block--;
+            if (!tail->lc) {
+                while (tail->rs) {
+                    tail = tail->rs;
+                }
+            }
+            tail = tail->lc;
+        }
+        // std::cout << "end skip on " << ASTNode::TypeName(tail->ty) << "\n";
+    }
+
 
     // evaluate the code in this block, starting from the ASTNode* after the BEGIN_BLOCK
     int execute(ASTNode* start) {
@@ -143,8 +164,11 @@ public:
             next = tail;
             if (next->ty == ASTNode::Type::BEGIN_BLOCK) {
                 blocks++;
+                tail = tail->lc;
             } else if (next->ty == ASTNode::Type::END_BLOCK) {
                 blocks--;
+                if (tail)
+                    tail = tail->lc;
             } else if (next->ty == ASTNode::Type::PRINTF) {
                 std::vector<ASTNode*> args;
                 next = next->rs;
@@ -181,9 +205,11 @@ public:
                 }
 
                 std::cout << fmt;
+                tail = tail->lc;
             } else if (next->ty == ASTNode::Type::CALL) {
                 next = next->rs;
                 call();
+                tail = tail->lc;
             } else if (next->ty == ASTNode::Type::WHILE) {
                 next = next->rs;
                 ASTNode* cond = next;
@@ -195,6 +221,7 @@ public:
                     }
                     execute(loop_start);
                 }
+                
             } else if (next->ty == ASTNode::Type::FOR_1) {
                 // init assignment
                 if (next->rs) {
@@ -229,22 +256,38 @@ public:
                 next = next->rs;
                 // next now points to identifier being assigned
                 assignment_expression();
+                tail = tail->lc;
             } else if (next->ty == ASTNode::Type::IF) {
                 next = next->rs;
                 // next now points to condition
                 int cond = expression();
+                tail = tail->lc; // BEGIN BLOCK
+                tail = tail->lc; // first statement of body
+                // std::cout << "SEE IF\n";
+                // skip_block();
+                // tail = tail->lc;
+                
+                
+                if (cond) {
+                    // std::cout << "Executing if body starting with " << ASTNode::TypeName(tail->ty) << "\n";
 
-                if (!cond) {
-                    // skip content
-                    // skip over BEGIN_BLOCK
-                    tail = tail->lc;
-                    int inner = blocks + 1;
-                    while (inner != blocks) {
-                        tail = tail->lc;
-                        if (tail->ty == ASTNode::Type::BEGIN_BLOCK) inner++;
-                        if (tail->ty == ASTNode::Type::END_BLOCK) inner--;
+                    execute(tail);
+
+                    // skip_block();
+                    if (tail->ty == ASTNode::Type::ELSE) {
+                        tail = tail->lc->lc;
+                        skip_block();
+                    }
+                } else {
+                    skip_block();
+                    if (tail->ty == ASTNode::Type::ELSE) {
+                        tail = tail->lc->lc;
+                        // std::cout << "Executing else body starting with " << ASTNode::TypeName(tail->ty) << "\n";
+                        execute(tail);
+                        // skip_block();
                     }
                 }
+                // tail = tail->lc;
 
             } else if (next->ty == ASTNode::Type::RETURN) {
                 if (next->rs) {
@@ -257,9 +300,12 @@ public:
                     // procedure
                     break;
                 }
-            }
-            if (tail)
                 tail = tail->lc;
+            } else {
+                if (tail)
+                    tail = tail->lc;
+            }
+                
         }
 
         return 0;
