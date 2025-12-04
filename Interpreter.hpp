@@ -21,11 +21,11 @@ public:
 
     int call() {
         ASTNode* func = next;
+
         next = next->rs; // L_PAREN
         next = next->rs; // first param
 
         std::vector<int> params;
-
         while (next->token->tokenType != "R_PAREN") {
             params.push_back(expression());
             if (next && next->token->tokenType == "COMMA") {
@@ -65,6 +65,8 @@ public:
         ASTNode* start = next;
         int index = 0;
         int val = expression();
+        ASTNode* end = next;
+        next = start;
         if (sym->datatypeIsArray == "no") {
             if (!sym->value) {
                 sym->value = new int;
@@ -84,15 +86,34 @@ public:
         if (index >= 0) {
             // scalar assignment
             next = start;
-            sym->value[index] = expression();
+            sym->value[index] = val;
         } else {
             // array assignment
-            next = next->rs; // now string
+
+            next = start->rs->rs; // now string
+
             std::string str = next->token->line; // IDENT " string " =
-            for (int i = 0; i < str.length(); i++) {
-                sym->value[i] = str[i];
+            // parse escaped characters in string
+            for (int i = 0, j = 0; i < str.length(); i++, j++) {
+                if (str[i] == '\\') {
+                    i++;
+                    if (str[i] == 'x') {
+                        i++;
+                        if (str[i] >= 'a' && str[i] <= 'f') sym->value[j] = str[i] - 'a' + 10;
+                        else if (str[i] >= 'A' && str[i] <= 'F') sym->value[j] = str[i] - 'A' + 10;
+                        else if (str[i] >= '0' && str[i] <= '9') sym->value[j] = str[i] - '0';
+                        
+                    } else if (str[i] == 'n') {
+                        sym->value[j] = '\n';
+                    }
+                } else {
+                    sym->value[j] = str[i];
+                }
+                
             }
         }
+
+        next = end;
 
     }
 
@@ -196,10 +217,11 @@ public:
                     if (!expression()) {
                         break;
                     }
-                    next = update;
-                    assignment_expression();
 
                     execute(body);
+
+                    next = update;
+                    assignment_expression();
                 }
 
             } else if (next->ty == ASTNode::Type::ASSIGNMENT) {
@@ -258,9 +280,9 @@ public:
             } else if (next->token->tokenType == "IDENTIFIER" && next->rs && next->rs->token->tokenType == "L_BRACKET") {
                 // array index
                 int* arr = next->symbol->value;
-
                 if (!arr) {
                     arr = new int[next->symbol->datatypeArraySize];
+                    next->symbol->value = arr;
                 }
 
                 next = next->rs; // left bracket
@@ -284,6 +306,11 @@ public:
                 next = next->rs;
             } else if (next->token->tokenType == "INTEGER") {
                 st.push(std::stoi(next->token->line));
+                next = next->rs;
+            } else if (next->token->tokenType == "SINGLE_QUOTE") {
+                next = next->rs;
+                st.push(next->token->line[0]);
+                next = next->rs;
                 next = next->rs;
             } else if (next->token->tokenType == "PLUS") {
                 int b = st.top(); st.pop();
@@ -366,7 +393,7 @@ public:
         } while (next);
 
         if (st.empty()) {
-            return -33;
+            return -333333;
         }
 
         return st.top();

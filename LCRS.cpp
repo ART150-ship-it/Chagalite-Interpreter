@@ -414,6 +414,8 @@ void LCRSTree::BOOLEAN_NOT(Node *currentToken)
     std::string nextTokenType = peek(currentToken);
     if(nextTokenType == "IDENTIFIER"){
         identifer(currentToken->next);
+    } else if(nextTokenType == "L_PAREN"){
+        L_PAREN(currentToken->next);
     }
 
 }

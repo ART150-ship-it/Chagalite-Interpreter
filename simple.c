@@ -34,6 +34,16 @@ procedure main (void)
 
   printf("My string is %s\n", str);
 
+  int v1;
+  int v2;
+  int res;
 
+  v1 = 5;
+
+  v2 = 3;
+
+  res = v1 - v2 + 1;
+
+  printf("five minus three plus one is %d\n", res);
   
 }
