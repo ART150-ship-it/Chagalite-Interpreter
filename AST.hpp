@@ -81,6 +81,13 @@ public:
         VOID,
     };
 
+    bool isDatatypeSpecifier(treeNode* t);
+    std::optional<ExpressionType> opType(treeNode* n);
+    bool isRightAssociative(treeNode* n);
+    int opPrecedence(treeNode* n);
+
+
+
     // build an AST from the CST and symbol table
     AST(const LCRSTree& cst, const SymbolTable& table);
 

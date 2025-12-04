@@ -1,6 +1,6 @@
 #include "AST.hpp"
 
-bool isDatatypeSpecifier(treeNode* t) {
+bool AST::isDatatypeSpecifier(treeNode* t) {
     if (t->tokenType != "IDENTIFIER") {
         return false;
     }
@@ -139,7 +139,7 @@ AST::AST(const LCRSTree& cst, const SymbolTable& table) {
 
 }
 
-int opPrecedence(treeNode* n) {
+int AST::opPrecedence(treeNode* n) {
     if (n->tokenType == "BOOLEAN_OR") {
         return 0;
     } else if (n->tokenType == "BOOLEAN_AND") {
@@ -160,11 +160,11 @@ int opPrecedence(treeNode* n) {
     return -1;
 }
 
-bool isRightAssociative(treeNode* n) {
+bool AST::isRightAssociative(treeNode* n) {
     return n->tokenType == "BOOLEAN_NOT";
 }
 
-std::optional<AST::ExpressionType> opType(treeNode* n) {
+std::optional<AST::ExpressionType> AST::opType(treeNode* n) {
     int p = opPrecedence(n);
     if (p > 4 && p != 7) {
         return AST::ExpressionType::NUMERIC;

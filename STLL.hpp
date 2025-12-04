@@ -9,8 +9,10 @@ struct STNode {
     int datatypeArraySize = -1;
     int scope = -1;
     std::string parameterListFor = "";
+    std::vector<STNode*> params;
     STNode* next = nullptr;
     int lineNumber = 0;
+    int* value = nullptr;
 };
 
 

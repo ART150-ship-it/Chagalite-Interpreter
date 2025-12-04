@@ -124,6 +124,7 @@ treeNode* SymbolTable::isFunction(treeNode *node, int currentScope)
     newNode->datatypeArraySize = 0;
     newNode->scope = currentScope;
     InsertNodeLast(newNode);
+    STNode* parent = newNode;
     while(node->line != ")"){
         if(node->line == "int"){
             newNode = new STNode;
@@ -139,6 +140,7 @@ treeNode* SymbolTable::isFunction(treeNode *node, int currentScope)
             newNode->datatypeArraySize = 0;
             newNode->scope = currentScope;
             InsertNodeParamLast(newNode);
+            parent->params.push_back(newNode);
         }
         else if(node->line == "char"){
             newNode = new STNode;
@@ -161,7 +163,8 @@ treeNode* SymbolTable::isFunction(treeNode *node, int currentScope)
                 newNode->datatypeArraySize = 0;
             }
             newNode->scope = currentScope;
-            InsertNodeParamLast(newNode);            
+            InsertNodeParamLast(newNode);
+            parent->params.push_back(newNode);       
         }
         else if(node->line == "bool"){
             newNode = new STNode;
@@ -177,6 +180,7 @@ treeNode* SymbolTable::isFunction(treeNode *node, int currentScope)
             newNode->datatypeArraySize = 0;
             newNode->scope = currentScope;
             InsertNodeParamLast(newNode);
+            parent->params.push_back(newNode);
         }
         node = node->next;
     }
@@ -262,6 +266,7 @@ treeNode *SymbolTable::isProcedure(treeNode *node, int currentScope)
     newNode->datatypeArraySize = 0;
     newNode->scope = currentScope;
     InsertNodeLast(newNode);
+    STNode* parent = newNode;
     while(node->line != ")"){
         if(node->line == "int"){
             newNode = new STNode;
@@ -277,6 +282,7 @@ treeNode *SymbolTable::isProcedure(treeNode *node, int currentScope)
             newNode->datatypeArraySize = 0;
             newNode->scope = currentScope;
             InsertNodeParamLast(newNode);
+            parent->params.push_back(newNode);
         }
         else if(node->line == "char"){
             newNode = new STNode;
@@ -299,7 +305,8 @@ treeNode *SymbolTable::isProcedure(treeNode *node, int currentScope)
                 newNode->datatypeArraySize = 0;
             }
             newNode->scope = currentScope;
-            InsertNodeParamLast(newNode);           
+            InsertNodeParamLast(newNode);
+            parent->params.push_back(newNode);       
         }
         node = node->next;
     }
