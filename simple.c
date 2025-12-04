@@ -12,17 +12,23 @@ procedure main (void)
 {
   printf("Hello, World!\n");
   int b;
-  b = -12;
+  b = 0;
   int c;
   c = 9;
   bool cont;
   cont = TRUE;
   while (cont) {
-    printf("Inside loop%d\n", b);
+    printf("Inside while loop %d\n", b);
     b = b + 1;
-    if (b == 10) {
+    if (b == 3) {
       cont = FALSE;
     }
   }
+  int i;
+  for (i = 0; i < 3; i = i + 1) {
+    printf("Inside for loop %d\n", b);
+  }
+
+
   
 }

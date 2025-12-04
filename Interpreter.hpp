@@ -59,6 +59,29 @@ public:
         return retval;
     }
 
+
+    void assignment_expression() {
+        STNode* sym = next->symbol;
+        ASTNode* start = next;
+        int index = 0;
+        int val = expression();
+        if (sym->datatypeIsArray == "no") {
+            if (!sym->value) {
+                sym->value = new int;
+            }
+        } else {
+            if (!sym->value) {
+                sym->value = new int[sym->datatypeArraySize];
+            }
+            next = next->rs; // now points to open bracket
+            next = next->rs;
+            index = expression();
+        }
+        next = start;
+        sym->value[index] = expression();
+    }
+
+
     // evaluate the code in this block, starting from the ASTNode* after the BEGIN_BLOCK
     int execute(ASTNode* start) {
         
@@ -124,26 +147,38 @@ std::vector<int> args;
                     }
                     execute(loop_start);
                 }
+            } else if (next->ty == ASTNode::Type::FOR_1) {
+                // init assignment
+                if (next->rs) {
+                    next = next->rs;
+                    assignment_expression();
+                }
+                while (tail->rs) tail = tail->rs;
+                tail = tail->lc; // FOR EXPRESSION 2
+                ASTNode* cond = tail->rs;
+                
+                while (tail->rs) tail = tail->rs;
+                tail = tail->lc; // FOR EXPRESSION 3
+                ASTNode* update = tail->rs;
+
+                while (tail->rs) tail = tail->rs;
+                ASTNode* body = tail->lc->lc;
+
+                while (true) {
+                    next = cond;
+                    if (!expression()) {
+                        break;
+                    }
+                    next = update;
+                    assignment_expression();
+
+                    execute(body);
+                }
+
             } else if (next->ty == ASTNode::Type::ASSIGNMENT) {
                 next = next->rs;
                 // next now points to identifier being assigned
-                STNode* stn = next->symbol;
-                int index = 0;
-                if (stn->datatypeIsArray == "no") {
-                    if (!stn->value) {
-                        stn->value = new int;
-                    }
-                } else {
-                    if (!stn->value) {
-                        stn->value = new int[stn->datatypeArraySize];
-                    }
-                    next = next->rs; // now points to open bracket
-                    next = next->rs;
-                    index = expression();
-                    std::cout << "assignment to " << stn->identifierName << " with index " << index << std::endl;
-                }
-                next = tail->rs;
-                stn->value[index] = expression();
+                assignment_expression();
             } else if (next->ty == ASTNode::Type::IF) {
                 next = next->rs;
                 // next now points to condition
