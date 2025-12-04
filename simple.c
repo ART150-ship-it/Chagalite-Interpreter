@@ -26,8 +26,13 @@ procedure main (void)
   }
   int i;
   for (i = 0; i < 3; i = i + 1) {
-    printf("Inside for loop %d\n", b);
+    printf("Inside for loop %d\n", i);
   }
+
+  char str[15];
+  str = "Hello";
+
+  printf("My string is %s\n", str);
 
 
   

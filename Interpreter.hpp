@@ -69,16 +69,31 @@ public:
             if (!sym->value) {
                 sym->value = new int;
             }
-        } else {
+        } else if (next->rs->token->tokenType == "L_BRACKET") {
+            
             if (!sym->value) {
                 sym->value = new int[sym->datatypeArraySize];
             }
             next = next->rs; // now points to open bracket
             next = next->rs;
             index = expression();
+        } else {
+            // string assignment
+            index = -1;
         }
-        next = start;
-        sym->value[index] = expression();
+        if (index >= 0) {
+            // scalar assignment
+            next = start;
+            sym->value[index] = expression();
+        } else {
+            // array assignment
+            next = next->rs; // now string
+            std::string str = next->token->line; // IDENT " string " =
+            for (int i = 0; i < str.length(); i++) {
+                sym->value[i] = str[i];
+            }
+        }
+
     }
 
 
@@ -127,6 +142,9 @@ public:
                         value = std::to_string(*args[argIdx++]->symbol->value);
                     } else {
                         for (int i = 0; i < args[argIdx]->symbol->datatypeArraySize; i++) {
+                            if (args[argIdx]->symbol->value[i] == 0) {
+                                break;
+                            }
                             value.push_back(args[argIdx]->symbol->value[i]);
                         }
                         argIdx++;
