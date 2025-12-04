@@ -45,5 +45,15 @@ procedure main (void)
   res = v1 - v2 + 1;
 
   printf("five minus three plus one is %d\n", res);
+
+  int x, y, z;
+
+  for (x = 0; x < 3; x = x + 1) {
+    for (y = 0; y < 3; y = y + 1) {
+      for (z = 0; z < 3; z = z + 1) {
+        printf("values: (%d, %d, %d)\n", x, y, z);
+      }
+    }
+  }
   
 }

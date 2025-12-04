@@ -24,9 +24,8 @@ int main(int argc, char *argv[]){
 
     AST ast(CST, ST);
 
-    ast.print(); std::cout << std::endl;
-
-    std::cout << "INTERPRETED RESULT:\n";
+    // ast.print(); std::cout << std::endl;
+    // std::cout << "INTERPRETED RESULT:\n";
 
     Interpreter interpreter(&ST);
 

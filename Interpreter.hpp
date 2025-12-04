@@ -224,6 +224,7 @@ public:
                     assignment_expression();
                 }
 
+
             } else if (next->ty == ASTNode::Type::ASSIGNMENT) {
                 next = next->rs;
                 // next now points to identifier being assigned
@@ -257,7 +258,8 @@ public:
                     break;
                 }
             }
-            tail = tail->lc;
+            if (tail)
+                tail = tail->lc;
         }
 
         return 0;
