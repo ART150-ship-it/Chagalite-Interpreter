@@ -59,7 +59,7 @@ public:
         return retval;
     }
 
-
+    
     void assignment_expression() {
         STNode* sym = next->symbol;
         ASTNode* start = next;
@@ -110,19 +110,28 @@ public:
             } else if (next->ty == ASTNode::Type::END_BLOCK) {
                 blocks--;
             } else if (next->ty == ASTNode::Type::PRINTF) {
-std::vector<int> args;
+                std::vector<ASTNode*> args;
                 next = next->rs;
                 std::string fmt = next->token->line;
                 while (next->rs) {
                     next = next->rs;
-                    args.push_back(*next->symbol->value);
+                    args.push_back(next);
                 }
                 
                 size_t pos = 0;
                 int argIdx = 0;
 
-                while ((pos = fmt.find("%d", pos)) != std::string::npos) {
-                    std::string value = std::to_string(args[argIdx++]);
+                while ((pos = fmt.find("%", pos)) != std::string::npos) {
+                    std::string value;
+                    if (fmt[pos + 1] == 'd') {
+                        value = std::to_string(*args[argIdx++]->symbol->value);
+                    } else {
+                        for (int i = 0; i < args[argIdx]->symbol->datatypeArraySize; i++) {
+                            value.push_back(args[argIdx]->symbol->value[i]);
+                        }
+                        argIdx++;
+                    }
+                    
                     fmt.replace(pos, 2, value);
                     pos += value.size();
                 }
