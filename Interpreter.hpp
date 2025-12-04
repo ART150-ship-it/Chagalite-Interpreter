@@ -87,16 +87,29 @@ public:
             } else if (next->ty == ASTNode::Type::END_BLOCK) {
                 blocks--;
             } else if (next->ty == ASTNode::Type::PRINTF) {
-                std::vector<int> args;
+std::vector<int> args;
                 next = next->rs;
                 std::string fmt = next->token->line;
-                printf("%s ", fmt.c_str());
                 while (next->rs) {
                     next = next->rs;
-
-                    printf("%d, ", *next->symbol->value);
+                    args.push_back(*next->symbol->value);
                 }
-                printf("\n");
+                
+                size_t pos = 0;
+                int argIdx = 0;
+
+                while ((pos = fmt.find("%d", pos)) != std::string::npos) {
+                    std::string value = std::to_string(args[argIdx++]);
+                    fmt.replace(pos, 2, value);
+                    pos += value.size();
+                }
+
+                size_t newLinePos = fmt.find("\\n");
+                if (newLinePos != std::string::npos) {
+                    fmt.replace(newLinePos, 2, "\n");
+                }
+
+                std::cout << fmt;
             } else if (next->ty == ASTNode::Type::CALL) {
                 next = next->rs;
                 call();
