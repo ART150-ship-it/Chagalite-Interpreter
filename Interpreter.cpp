@@ -77,7 +77,8 @@ int Interpreter::execute(ASTNode* start) {
                         if (args[argIdx]->symbol->value[i] == 0) {
                             break;
                         }
-                        value.push_back(args[argIdx]->symbol->value[i]);
+                        if (isascii(args[argIdx]->symbol->value[i]))
+                            value.push_back(args[argIdx]->symbol->value[i]);
                     }
                     argIdx++;
                 } else {
